@@ -1,0 +1,17 @@
+{
+  "cxxNamespace": ["nitroinspireface"],
+  "ios": {
+    "iosModuleName": "NitroInspireFace"
+  },
+  "android": {
+    "androidNamespace": ["nitroinspireface"],
+    "androidCxxLibName": "nitroinspireface"
+  },
+  "autolinking": {
+    "NitroInspireFace": {
+      "swift": "NitroInspireFace",
+      "kotlin": "NitroInspireFace"
+    }
+  },
+  "ignorePaths": ["node_modules"]
+}
