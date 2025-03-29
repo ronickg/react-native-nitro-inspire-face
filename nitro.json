@@ -9,8 +9,13 @@
   },
   "autolinking": {
     "NitroInspireFace": {
-      "swift": "NitroInspireFace",
-      "kotlin": "NitroInspireFace"
+      "cpp": "NitroInspireFace"
+    },
+    "NitroSession": {
+      "cpp": "NitroSession"
+    },
+    "ImageStream": {
+      "cpp": "ImageStream"
     }
   },
   "ignorePaths": ["node_modules"]
