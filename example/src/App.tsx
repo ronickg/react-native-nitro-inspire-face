@@ -19,6 +19,7 @@ export default function App() {
           RNFS.DocumentDirectoryPath + '/Pikachu'
         );
         if (!fileExists) {
+          console.log(RNFS.DocumentDirectoryPath + '/Pikachu');
           console.log('Pikachu does not exist');
           return;
         }
@@ -137,6 +138,8 @@ export default function App() {
             );
           });
 
+          const start = performance.now();
+
           let queryIdentity = InspireFace.featureHubGetFaceIdentity(4);
           if (queryIdentity) {
             console.log('Query identity: ', queryIdentity.id);
@@ -191,6 +194,8 @@ export default function App() {
             const faceAttributeResult = session.getFaceAttributeResult();
             console.log('faceAttributeResult', faceAttributeResult);
           }
+          const end = performance.now();
+          console.log(`Time taken: ${end - start} milliseconds`);
         }
         // cosnt;
         // const data = imageStream
