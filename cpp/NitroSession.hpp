@@ -3,6 +3,9 @@
 #include "HybridNitroSessionSpec.hpp"
 #include "HybridNitroImageStreamSpec.hpp"
 #include "MultipleFaceData.hpp"
+#include "FaceInteractionState.hpp"
+#include "FaceInteractionsAction.hpp"
+#include "FaceAttributeResult.hpp"
 #include "inspireface.h"
 
 namespace margelo::nitro::nitroinspireface
@@ -32,7 +35,13 @@ namespace margelo::nitro::nitroinspireface
     void setFilterMinimumFacePixelSize(double size) override;
     MultipleFaceData executeFaceTrack(const std::shared_ptr<HybridNitroImageStreamSpec> &imageStream) override;
     FaceFeature extractFaceFeature(const std::shared_ptr<HybridNitroImageStreamSpec> &imageStream, const FaceBasicToken &faceToken) override;
-    MultipleFaceData multipleFacePipelineProcess(const std::shared_ptr<HybridNitroImageStreamSpec> &imageStream, const MultipleFaceData &multipleFaceData, const SessionCustomParameter &parameter) override;
+    bool multipleFacePipelineProcess(const std::shared_ptr<HybridNitroImageStreamSpec> &imageStream, const MultipleFaceData &multipleFaceData, const SessionCustomParameter &parameter) override;
+    std::vector<double> getRGBLivenessConfidence() override;
+    std::vector<double> getFaceQualityConfidence() override;
+    std::vector<double> getFaceMaskConfidence() override;
+    std::vector<FaceInteractionState> getFaceInteractionState() override;
+    std::vector<FaceInteractionsAction> getFaceInteractionActionsResult() override;
+    std::vector<FaceAttributeResult> getFaceAttributeResult() override;
 
   private:
     HFSession _session;

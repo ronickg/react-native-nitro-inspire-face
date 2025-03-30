@@ -24,14 +24,14 @@ export enum CameraRotation {
 }
 
 export type SessionCustomParameter = {
-  enableRecognition: boolean;
-  enableLiveness: boolean;
-  enableIrLiveness: boolean;
-  enableMaskDetect: boolean;
-  enableFaceQuality: boolean;
-  enableFaceAttribute: boolean;
-  enableInteractionLiveness: boolean;
-  enableDetectModeLandmark: boolean;
+  enableRecognition?: boolean;
+  enableLiveness?: boolean;
+  enableIrLiveness?: boolean;
+  enableMaskDetect?: boolean;
+  enableFaceQuality?: boolean;
+  enableFaceAttribute?: boolean;
+  enableInteractionLiveness?: boolean;
+  enableDetectModeLandmark?: boolean;
 };
 
 export type FeatureHubConfiguration = {
@@ -97,6 +97,25 @@ export type SearchTopKResult = {
   id: number;
 };
 
+export type FaceInteractionState = {
+  left: number;
+  right: number;
+};
+
+export type FaceInteractionsAction = {
+  normal: number;
+  shake: number;
+  jawOpen: number;
+  headRaise: number;
+  blink: number;
+};
+
+export type FaceAttributeResult = {
+  ageBracket: number;
+  gender: number;
+  race: number;
+};
+
 export interface NitroInspireFace
   extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
   readonly version: string;
@@ -123,13 +142,14 @@ export interface NitroInspireFace
   featureHubFaceInsert(feature: FaceFeatureIdentity): number;
   featureHubFaceUpdate(feature: FaceFeatureIdentity): boolean;
   featureHubFaceRemove(id: number): boolean;
-  featureHubFaceSearch(feature: FaceFeature): FaceFeatureIdentity;
-  featureHubGetFaceIdentity(id: number): FaceFeatureIdentity;
+  featureHubFaceSearch(feature: FaceFeature): FaceFeatureIdentity | null;
+  featureHubGetFaceIdentity(id: number): FaceFeatureIdentity | null;
   featureHubFaceSearchTopK(
     feature: FaceFeature,
     topK: number
   ): SearchTopKResult[];
   getFeatureLength(): number;
+  faceComparison(feature1: FaceFeature, feature2: FaceFeature): number;
 }
 export interface NitroImageStream
   extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
@@ -149,5 +169,11 @@ export interface NitroSession
     imageStream: NitroImageStream,
     multipleFaceData: MultipleFaceData,
     parameter: SessionCustomParameter
-  ): MultipleFaceData;
+  ): boolean;
+  getRGBLivenessConfidence(): number[];
+  getFaceQualityConfidence(): number[];
+  getFaceMaskConfidence(): number[];
+  getFaceInteractionState(): FaceInteractionState[];
+  getFaceInteractionActionsResult(): FaceInteractionsAction[];
+  getFaceAttributeResult(): FaceAttributeResult[];
 }

@@ -3,13 +3,18 @@
 #include <string>
 #include <cstring>
 #include <NitroModules/ArrayBuffer.hpp>
+#include <NitroModules/NitroLogger.hpp>
 #include "FaceRect.hpp"
 #include "FaceEulerAngle.hpp"
 #include "FaceBasicToken.hpp"
 #include "FaceFeature.hpp"
 #include "MultipleFaceData.hpp"
+#include "FaceInteractionState.hpp"
+#include "FaceInteractionsAction.hpp"
+#include "FaceAttributeResult.hpp"
 #include "NitroImageStream.hpp"
 #include <memory>
+#include <vector>
 
 namespace margelo::nitro::nitroinspireface
 {
@@ -269,23 +274,26 @@ namespace margelo::nitro::nitroinspireface
     return FaceFeature(static_cast<double>(feature.size), featureBuffer);
   }
 
-  MultipleFaceData NitroSession::multipleFacePipelineProcess(const std::shared_ptr<HybridNitroImageStreamSpec> &imageStream, const MultipleFaceData &multipleFaceData, const SessionCustomParameter &parameter)
+  bool NitroSession::multipleFacePipelineProcess(const std::shared_ptr<HybridNitroImageStreamSpec> &imageStream, const MultipleFaceData &multipleFaceData, const SessionCustomParameter &parameter)
   {
     if (_session == nullptr)
     {
-      throw std::runtime_error("Session is not initialized");
+      Logger::log(LogLevel::Error, "NitroSession", "Session is not initialized");
+      return false;
     }
 
     if (!imageStream)
     {
-      throw std::runtime_error("Image stream is null");
+      Logger::log(LogLevel::Error, "NitroSession", "Image stream is null");
+      return false;
     }
 
     // Cast the image stream to NitroImageStream
     auto nitroImageStream = std::dynamic_pointer_cast<NitroImageStream>(imageStream);
     if (!nitroImageStream)
     {
-      throw std::runtime_error("Failed to cast to NitroImageStream");
+      Logger::log(LogLevel::Error, "NitroSession", "Failed to cast to NitroImageStream");
+      return false;
     }
 
     // Convert SessionCustomParameter to HFSessionCustomParameter
@@ -365,99 +373,208 @@ namespace margelo::nitro::nitroinspireface
 
     if (result != HSUCCEED)
     {
-      throw std::runtime_error("Failed to process faces in pipeline with error code: " + std::to_string(result));
+      Logger::log(LogLevel::Error, "NitroSession", "Failed to process faces in pipeline, error code: %ld", result);
+      return false;
     }
 
-    // Convert back to MultipleFaceData
-    std::vector<FaceRect> rects;
-    std::vector<double> trackIds;
-    std::vector<double> detConfidence;
-    std::vector<FaceBasicToken> tokens;
+    return true;
+  }
 
-    // Process face rectangles
-    if (hfFaces.rects != nullptr)
+  std::vector<double> NitroSession::getRGBLivenessConfidence()
+  {
+    if (_session == nullptr)
     {
-      for (int i = 0; i < hfFaces.detectedNum; i++)
+      Logger::log(LogLevel::Error, "NitroSession", "Session is not initialized");
+      return std::vector<double>();
+    }
+
+    // Get RGB liveness confidence
+    HFRGBLivenessConfidence confidence = {};
+    HResult result = HFGetRGBLivenessConfidence(_session, &confidence);
+    if (result != HSUCCEED)
+    {
+      Logger::log(LogLevel::Error, "NitroSession", "Failed to get RGB liveness confidence, error code: %ld", result);
+      return std::vector<double>();
+    }
+
+    // Convert to vector
+    std::vector<double> confidenceValues;
+    if (confidence.num > 0 && confidence.confidence != nullptr)
+    {
+      confidenceValues.reserve(confidence.num);
+      for (int i = 0; i < confidence.num; i++)
       {
-        rects.push_back(FaceRect(
-            static_cast<double>(hfFaces.rects[i].x),
-            static_cast<double>(hfFaces.rects[i].y),
-            static_cast<double>(hfFaces.rects[i].width),
-            static_cast<double>(hfFaces.rects[i].height)));
+        confidenceValues.push_back(static_cast<double>(confidence.confidence[i]));
       }
     }
 
-    // Process track IDs
-    if (hfFaces.trackIds != nullptr)
+    return confidenceValues;
+  }
+
+  std::vector<double> NitroSession::getFaceQualityConfidence()
+  {
+    if (_session == nullptr)
     {
-      for (int i = 0; i < hfFaces.detectedNum; i++)
+      Logger::log(LogLevel::Error, "NitroSession", "Session is not initialized");
+      return std::vector<double>();
+    }
+
+    // Get face quality confidence
+    HFFaceQualityConfidence confidence = {};
+    HResult result = HFGetFaceQualityConfidence(_session, &confidence);
+    if (result != HSUCCEED)
+    {
+      Logger::log(LogLevel::Error, "NitroSession", "Failed to get face quality confidence, error code: %ld", result);
+      return std::vector<double>();
+    }
+
+    // Convert to vector
+    std::vector<double> confidenceValues;
+    if (confidence.num > 0 && confidence.confidence != nullptr)
+    {
+      confidenceValues.reserve(confidence.num);
+      for (int i = 0; i < confidence.num; i++)
       {
-        trackIds.push_back(static_cast<double>(hfFaces.trackIds[i]));
+        confidenceValues.push_back(static_cast<double>(confidence.confidence[i]));
       }
     }
 
-    // Process detection confidence
-    if (hfFaces.detConfidence != nullptr)
+    return confidenceValues;
+  }
+
+  std::vector<double> NitroSession::getFaceMaskConfidence()
+  {
+    if (_session == nullptr)
     {
-      for (int i = 0; i < hfFaces.detectedNum; i++)
+      Logger::log(LogLevel::Error, "NitroSession", "Session is not initialized");
+      return std::vector<double>();
+    }
+
+    // Get face mask confidence
+    HFFaceMaskConfidence confidence = {};
+    HResult result = HFGetFaceMaskConfidence(_session, &confidence);
+    if (result != HSUCCEED)
+    {
+      Logger::log(LogLevel::Error, "NitroSession", "Failed to get face mask confidence, error code: %ld", result);
+      return std::vector<double>();
+    }
+
+    // Convert to vector
+    std::vector<double> confidenceValues;
+    if (confidence.num > 0 && confidence.confidence != nullptr)
+    {
+      confidenceValues.reserve(confidence.num);
+      for (int i = 0; i < confidence.num; i++)
       {
-        detConfidence.push_back(static_cast<double>(hfFaces.detConfidence[i]));
+        confidenceValues.push_back(static_cast<double>(confidence.confidence[i]));
       }
     }
 
-    // Process tokens
-    if (hfFaces.tokens != nullptr)
+    return confidenceValues;
+  }
+
+  std::vector<FaceInteractionState> NitroSession::getFaceInteractionState()
+  {
+    if (_session == nullptr)
     {
-      for (int i = 0; i < hfFaces.detectedNum; i++)
+      Logger::log(LogLevel::Error, "NitroSession", "Session is not initialized");
+      return std::vector<FaceInteractionState>();
+    }
+
+    // Get face interaction state
+    HFFaceInteractionState state = {};
+    HResult result = HFGetFaceInteractionStateResult(_session, &state);
+    if (result != HSUCCEED)
+    {
+      Logger::log(LogLevel::Error, "NitroSession", "Failed to get face interaction state, error code: %ld", result);
+      return std::vector<FaceInteractionState>();
+    }
+
+    // Convert to vector
+    std::vector<FaceInteractionState> stateValues;
+    if (state.num > 0 && state.leftEyeStatusConfidence != nullptr && state.rightEyeStatusConfidence != nullptr)
+    {
+      stateValues.reserve(state.num);
+      for (int i = 0; i < state.num; i++)
       {
-        int tokenSize = static_cast<int>(hfFaces.tokens[i].size);
-        std::shared_ptr<margelo::nitro::ArrayBuffer> buffer;
-
-        if (tokenSize > 0 && hfFaces.tokens[i].data != nullptr)
-        {
-          try
-          {
-            buffer = margelo::nitro::ArrayBuffer::copy(
-                static_cast<uint8_t *>(hfFaces.tokens[i].data),
-                tokenSize);
-          }
-          catch (const std::exception &e)
-          {
-            buffer = margelo::nitro::ArrayBuffer::allocate(0);
-          }
-        }
-        else
-        {
-          buffer = margelo::nitro::ArrayBuffer::allocate(0);
-        }
-
-        if (buffer)
-        {
-          tokens.push_back(FaceBasicToken(
-              static_cast<double>(tokenSize),
-              buffer));
-        }
+        stateValues.push_back(FaceInteractionState(
+            static_cast<double>(state.leftEyeStatusConfidence[i]),
+            static_cast<double>(state.rightEyeStatusConfidence[i])));
       }
     }
 
-    // Create FaceEulerAngle from results
-    double roll = 0.0, yaw = 0.0, pitch = 0.0;
-    if (hfFaces.angles.roll != nullptr)
-      roll = static_cast<double>(*hfFaces.angles.roll);
-    if (hfFaces.angles.yaw != nullptr)
-      yaw = static_cast<double>(*hfFaces.angles.yaw);
-    if (hfFaces.angles.pitch != nullptr)
-      pitch = static_cast<double>(*hfFaces.angles.pitch);
+    return stateValues;
+  }
 
-    FaceEulerAngle angles(roll, yaw, pitch);
+  std::vector<FaceInteractionsAction> NitroSession::getFaceInteractionActionsResult()
+  {
+    if (_session == nullptr)
+    {
+      Logger::log(LogLevel::Error, "NitroSession", "Session is not initialized");
+      return std::vector<FaceInteractionsAction>();
+    }
 
-    return MultipleFaceData(
-        static_cast<double>(hfFaces.detectedNum),
-        rects,
-        trackIds,
-        detConfidence,
-        angles,
-        tokens);
+    // Get face interaction actions
+    HFFaceInteractionsActions actions = {};
+    HResult result = HFGetFaceInteractionActionsResult(_session, &actions);
+    if (result != HSUCCEED)
+    {
+      Logger::log(LogLevel::Error, "NitroSession", "Failed to get face interaction actions, error code: %ld", result);
+      return std::vector<FaceInteractionsAction>();
+    }
+
+    // Convert to vector
+    std::vector<FaceInteractionsAction> actionValues;
+    if (actions.num > 0 && actions.normal != nullptr && actions.shake != nullptr &&
+        actions.jawOpen != nullptr && actions.headRaise != nullptr && actions.blink != nullptr)
+    {
+      actionValues.reserve(actions.num);
+      for (int i = 0; i < actions.num; i++)
+      {
+        actionValues.push_back(FaceInteractionsAction(
+            static_cast<double>(actions.normal[i]),
+            static_cast<double>(actions.shake[i]),
+            static_cast<double>(actions.jawOpen[i]),
+            static_cast<double>(actions.headRaise[i]),
+            static_cast<double>(actions.blink[i])));
+      }
+    }
+
+    return actionValues;
+  }
+
+  std::vector<FaceAttributeResult> NitroSession::getFaceAttributeResult()
+  {
+    if (_session == nullptr)
+    {
+      Logger::log(LogLevel::Error, "NitroSession", "Session is not initialized");
+      return std::vector<FaceAttributeResult>();
+    }
+
+    // Get face attribute results
+    HFFaceAttributeResult results = {};
+    HResult result = HFGetFaceAttributeResult(_session, &results);
+    if (result != HSUCCEED)
+    {
+      Logger::log(LogLevel::Error, "NitroSession", "Failed to get face attribute results, error code: %ld", result);
+      return std::vector<FaceAttributeResult>();
+    }
+
+    // Convert to vector
+    std::vector<FaceAttributeResult> attributeValues;
+    if (results.num > 0 && results.ageBracket != nullptr && results.gender != nullptr && results.race != nullptr)
+    {
+      attributeValues.reserve(results.num);
+      for (int i = 0; i < results.num; i++)
+      {
+        attributeValues.push_back(FaceAttributeResult(
+            static_cast<double>(results.ageBracket[i]),
+            static_cast<double>(results.gender[i]),
+            static_cast<double>(results.race[i])));
+      }
+    }
+
+    return attributeValues;
   }
 
 } // namespace margelo::nitro::nitroinspireface

@@ -6,6 +6,7 @@
 #include <cstring>
 #include <memory>
 #include <vector>
+#include <optional>
 
 namespace margelo::nitro::nitroinspireface
 {
@@ -269,7 +270,7 @@ namespace margelo::nitro::nitroinspireface
     return result == HSUCCEED;
   }
 
-  FaceFeatureIdentity NitroInspireFace::featureHubFaceSearch(const FaceFeature &feature)
+  std::optional<FaceFeatureIdentity> NitroInspireFace::featureHubFaceSearch(const FaceFeature &feature)
   {
     // Convert FaceFeature to HFFaceFeature
     HFFaceFeature hfFeature;
@@ -284,7 +285,8 @@ namespace margelo::nitro::nitroinspireface
     HResult result = HFFeatureHubFaceSearch(hfFeature, &confidence, &mostSimilar);
     if (result != HSUCCEED)
     {
-      throw std::runtime_error("Failed to search face with error code: " + std::to_string(result));
+      // If the ID doesn't exist, return nullopt instead of throwing an exception
+      return std::nullopt;
     }
 
     // Convert HFFaceFeature to FaceFeature
@@ -303,13 +305,14 @@ namespace margelo::nitro::nitroinspireface
         std::make_optional(static_cast<double>(confidence)));
   }
 
-  FaceFeatureIdentity NitroInspireFace::featureHubGetFaceIdentity(double id)
+  std::optional<FaceFeatureIdentity> NitroInspireFace::featureHubGetFaceIdentity(double id)
   {
     HFFaceFeatureIdentity identity = {};
     HResult result = HFFeatureHubGetFaceIdentity(static_cast<HFaceId>(id), &identity);
     if (result != HSUCCEED)
     {
-      throw std::runtime_error("Failed to get face identity with error code: " + std::to_string(result));
+      // If the ID doesn't exist, return nullopt instead of throwing an exception
+      return std::nullopt;
     }
 
     // Convert HFFaceFeature to FaceFeature
@@ -365,5 +368,31 @@ namespace margelo::nitro::nitroinspireface
       throw std::runtime_error("Failed to get feature length with error code: " + std::to_string(result));
     }
     return static_cast<double>(length);
+  }
+
+  double NitroInspireFace::faceComparison(const FaceFeature &feature1, const FaceFeature &feature2)
+  {
+    // Convert FaceFeature to HFFaceFeature for the first feature
+    HFFaceFeature hfFeature1 = {};
+    hfFeature1.size = static_cast<HInt32>(feature1.size);
+    hfFeature1.data = reinterpret_cast<HPFloat>(feature1.data->data());
+
+    // Convert FaceFeature to HFFaceFeature for the second feature
+    HFFaceFeature hfFeature2 = {};
+    hfFeature2.size = static_cast<HInt32>(feature2.size);
+    hfFeature2.data = reinterpret_cast<HPFloat>(feature2.data->data());
+
+    // Create variable to store comparison result
+    HFloat result_value = 0.0f;
+
+    // Perform face comparison
+    HResult result = HFFaceComparison(hfFeature1, hfFeature2, &result_value);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to compare faces with error code: " + std::to_string(result));
+    }
+
+    // Return the comparison result
+    return static_cast<double>(result_value);
   }
 } // namespace margelo::nitro::nitroinspireface

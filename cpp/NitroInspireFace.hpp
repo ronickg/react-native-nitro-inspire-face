@@ -15,6 +15,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <optional>
 
 namespace margelo::nitro::nitroinspireface
 {
@@ -53,10 +54,11 @@ namespace margelo::nitro::nitroinspireface
     double featureHubFaceInsert(const FaceFeatureIdentity &feature) override;
     bool featureHubFaceUpdate(const FaceFeatureIdentity &feature) override;
     bool featureHubFaceRemove(double id) override;
-    FaceFeatureIdentity featureHubFaceSearch(const FaceFeature &feature) override;
-    FaceFeatureIdentity featureHubGetFaceIdentity(double id) override;
+    std::optional<FaceFeatureIdentity> featureHubFaceSearch(const FaceFeature &feature) override;
+    std::optional<FaceFeatureIdentity> featureHubGetFaceIdentity(double id) override;
     std::vector<SearchTopKResult> featureHubFaceSearchTopK(const FaceFeature &feature, double topK) override;
     double getFeatureLength() override;
+    double faceComparison(const FaceFeature &feature1, const FaceFeature &feature2) override;
   };
 
 } // namespace margelo::nitro::nitroinspireface

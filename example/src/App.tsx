@@ -4,6 +4,9 @@ import InspireFace, {
   DetectMode,
   PrimaryKeyMode,
   SearchMode,
+  type FaceFeature,
+  type FaceFeatureIdentity,
+  type SessionCustomParameter,
 } from 'react-native-nitro-inspire-face';
 import RNFS from 'react-native-fs';
 import { useEffect } from 'react';
@@ -38,8 +41,8 @@ export default function App() {
             enableInteractionLiveness: true,
             enableLiveness: true,
             enableMaskDetect: true,
-            enableIrLiveness: false,
-            enableDetectModeLandmark: false,
+            // enableIrLiveness: false,
+            // enableDetectModeLandmark: false,
           },
           DetectMode.ALWAYS_DETECT,
           10,
@@ -84,13 +87,14 @@ export default function App() {
           console.log('Feature size: ', new Float32Array(feature.data).length);
 
           const searched = InspireFace.featureHubFaceSearch(feature);
-          // console.log('searched', searched);
-          console.log(
-            'searched',
-            searched.id,
-            'confidence',
-            searched.confidence
-          );
+          if (searched) {
+            console.log(
+              'searched',
+              searched.id,
+              'confidence',
+              searched.confidence
+            );
+          }
 
           const topKResults = InspireFace.featureHubFaceSearchTopK(feature, 10);
           console.log('topKResults', topKResults.length);
@@ -102,6 +106,91 @@ export default function App() {
               result.confidence
             );
           });
+
+          const newFeature: FaceFeature = {
+            size: InspireFace.getFeatureLength(),
+            data: new Float32Array(feature.data).buffer,
+          };
+          const identity: FaceFeatureIdentity = {
+            id: 8,
+            feature: newFeature,
+          };
+          const updateSuccess = InspireFace.featureHubFaceUpdate(identity);
+          if (updateSuccess) {
+            console.log('Update feature success: ' + 8);
+          } else {
+            console.log('Update feature failed: ' + 8);
+          }
+          const removeSuccess = InspireFace.featureHubFaceRemove(4);
+          if (removeSuccess) {
+            console.log('Remove feature success: ' + 4);
+          } else {
+            console.log('Remove feature failed: ' + 4);
+          }
+          const topkAgn = InspireFace.featureHubFaceSearchTopK(feature, 10);
+          topkAgn.forEach((result) => {
+            console.log(
+              'Agn TopK id:',
+              result.id,
+              'Confidence: ',
+              result.confidence
+            );
+          });
+
+          let queryIdentity = InspireFace.featureHubGetFaceIdentity(4);
+          if (queryIdentity) {
+            console.log('Query identity: ', queryIdentity.id);
+          } else {
+            console.log('Query identity failed');
+          }
+          queryIdentity = InspireFace.featureHubGetFaceIdentity(2);
+          if (queryIdentity) {
+            console.log(
+              'strFt',
+              new Float32Array(queryIdentity.feature.data).length
+            );
+            console.log('query id: ', queryIdentity.id);
+
+            const comp = InspireFace.faceComparison(
+              queryIdentity.feature,
+              feature
+            );
+            console.log('comp', comp);
+          } else {
+            console.log('Query identity failed');
+          }
+
+          const pipelineNeedParam: SessionCustomParameter = {
+            enableFaceQuality: true,
+            enableLiveness: true,
+            enableMaskDetect: true,
+            enableFaceAttribute: true,
+            enableInteractionLiveness: true,
+          };
+          const succPipe = session.multipleFacePipelineProcess(
+            imageStream,
+            multipleFaceData,
+            pipelineNeedParam
+          );
+          if (succPipe) {
+            console.log('pipeline success');
+            const rgbLivenessConfidence = session.getRGBLivenessConfidence();
+            console.log('rgbLivenessConfidence', rgbLivenessConfidence);
+            const faceQualityConfidence = session.getFaceQualityConfidence();
+            console.log('faceQualityConfidence', faceQualityConfidence);
+            const faceMaskConfidence = session.getFaceMaskConfidence();
+            console.log('faceMaskConfidence', faceMaskConfidence);
+            const faceInteractionState = session.getFaceInteractionState();
+            console.log('faceInteractionState', faceInteractionState);
+            const faceInteractionActionsResult =
+              session.getFaceInteractionActionsResult();
+            console.log(
+              'faceInteractionActionsResult',
+              faceInteractionActionsResult
+            );
+            const faceAttributeResult = session.getFaceAttributeResult();
+            console.log('faceAttributeResult', faceAttributeResult);
+          }
         }
         // cosnt;
         // const data = imageStream
