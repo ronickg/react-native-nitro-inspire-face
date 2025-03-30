@@ -67,6 +67,11 @@ export default function App() {
           const lmk = InspireFace.getFaceDenseLandmarkFromFaceToken(
             multipleFaceData.tokens[0]
           );
+          const feature = session.extractFaceFeature(
+            imageStream,
+            multipleFaceData.tokens[0]
+          );
+          console.log('feature', feature);
           console.log('lmk', lmk);
           console.log('multipleFaceData', multipleFaceData.rects);
         }

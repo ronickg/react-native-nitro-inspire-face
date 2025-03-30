@@ -6,8 +6,10 @@
 #include "FaceRect.hpp"
 #include "FaceEulerAngle.hpp"
 #include "FaceBasicToken.hpp"
+#include "FaceFeature.hpp"
 #include "MultipleFaceData.hpp"
 #include "NitroImageStream.hpp"
+#include <memory>
 
 namespace margelo::nitro::nitroinspireface
 {
@@ -186,7 +188,6 @@ namespace margelo::nitro::nitroinspireface
     }
 
     // Create FaceEulerAngle from results
-    // Note: angles might be single values for all faces, or arrays per face depending on API
     double roll = 0.0, yaw = 0.0, pitch = 0.0;
 
     // Check if the angle pointers are valid before dereferencing
@@ -215,6 +216,42 @@ namespace margelo::nitro::nitroinspireface
         detConfidence,
         angles,
         tokens);
+  }
+
+  FaceFeature NitroSession::extractFaceFeature(const std::shared_ptr<HybridNitroImageStreamSpec> &imageStream, const FaceBasicToken &faceToken)
+  {
+    if (!imageStream)
+    {
+      throw std::runtime_error("Invalid input parameters");
+    }
+
+    // Cast the image stream to NitroImageStream
+    auto nitroImageStream = std::dynamic_pointer_cast<NitroImageStream>(imageStream);
+    if (!nitroImageStream)
+    {
+      throw std::runtime_error("Failed to cast to NitroImageStream");
+    }
+
+    // Create face token struct
+    HFFaceBasicToken token;
+    token.size = static_cast<HInt32>(faceToken.size);
+    token.data = faceToken.data->data();
+
+    // Extract face feature
+    HFFaceFeature feature;
+    HResult result = HFFaceFeatureExtract(_session, nitroImageStream->getNativeHandle(), token, &feature);
+
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to extract face feature");
+    }
+
+    // Create ArrayBuffer and copy feature data
+    auto buffer = margelo::nitro::ArrayBuffer::allocate(feature.size * sizeof(float));
+    std::memcpy(buffer->data(), feature.data, feature.size * sizeof(float));
+
+    // Return FaceFeature directly (not a shared_ptr)
+    return FaceFeature(static_cast<double>(feature.size), buffer);
   }
 
 } // namespace margelo::nitro::nitroinspireface

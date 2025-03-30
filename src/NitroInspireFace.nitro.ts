@@ -81,6 +81,11 @@ export type Point2f = {
   y: number;
 };
 
+export type FaceFeature = {
+  size: number;
+  data: ArrayBuffer;
+};
+
 export interface NitroInspireFace
   extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
   readonly version: string;
@@ -115,4 +120,8 @@ export interface NitroSession
   setFaceDetectThreshold(threshold: number): void;
   setFilterMinimumFacePixelSize(size: number): void;
   executeFaceTrack(imageStream: NitroImageStream): MultipleFaceData;
+  extractFaceFeature(
+    imageStream: NitroImageStream,
+    faceToken: FaceBasicToken
+  ): FaceFeature;
 }
