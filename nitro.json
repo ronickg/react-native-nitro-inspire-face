@@ -14,8 +14,8 @@
     "NitroSession": {
       "cpp": "NitroSession"
     },
-    "ImageStream": {
-      "cpp": "ImageStream"
+    "NitroImageStream": {
+      "cpp": "NitroImageStream"
     }
   },
   "ignorePaths": ["node_modules"]

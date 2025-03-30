@@ -49,6 +49,38 @@ export type ImageBitmap = {
   readonly data: ArrayBuffer;
 };
 
+export type FaceRect = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+export type FaceEulerAngle = {
+  roll: number;
+  yaw: number;
+  pitch: number;
+};
+
+export type FaceBasicToken = {
+  size: number;
+  data: ArrayBuffer;
+};
+
+export type MultipleFaceData = {
+  detectedNum: number;
+  rects: FaceRect[];
+  trackIds: number[];
+  detConfidence: number[];
+  angles: FaceEulerAngle;
+  tokens: FaceBasicToken[];
+};
+
+export type Point2f = {
+  x: number;
+  y: number;
+};
+
 export interface NitroInspireFace
   extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
   readonly version: string;
@@ -62,7 +94,7 @@ export interface NitroInspireFace
     maxDetectFaceNum: number,
     detectPixelLevel: number,
     trackByDetectModeFPS: number
-  ): Session;
+  ): NitroSession;
   createImageBitmapFromFilePath(
     channels: number,
     filePath: string
@@ -70,16 +102,17 @@ export interface NitroInspireFace
   createImageStreamFromBitmap(
     bitmap: ImageBitmap,
     rotation: CameraRotation
-  ): ImageStream;
+  ): NitroImageStream;
+  getFaceDenseLandmarkFromFaceToken(token: FaceBasicToken): Point2f[];
 }
-export interface ImageStream
+export interface NitroImageStream
   extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
   writeImageToFile(filePath: string): void;
 }
-
-export interface Session extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
+export interface NitroSession
+  extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
   setTrackPreviewSize(size: number): void;
   setFaceDetectThreshold(threshold: number): void;
   setFilterMinimumFacePixelSize(size: number): void;
-  executeFaceTrack(imageStream: ImageStream): void;
+  executeFaceTrack(imageStream: NitroImageStream): MultipleFaceData;
 }

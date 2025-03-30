@@ -4,6 +4,8 @@
 #include <stdexcept>
 #include <NitroModules/NitroLogger.hpp>
 #include <cstring>
+#include <memory>
+#include <vector>
 
 namespace margelo::nitro::nitroinspireface
 {
@@ -29,52 +31,33 @@ namespace margelo::nitro::nitroinspireface
 
   void NitroInspireFace::launch(const std::string &path)
   {
-    // Initialize the InspireFace SDK with the path to the resource files
     HResult result = HFLaunchInspireFace(path.c_str());
-
-    // Check specific error codes
-    if (result == HERR_ARCHIVE_LOAD_MODEL_FAILURE)
+    if (result != HSUCCEED)
     {
-      throw std::runtime_error("Failed to load InspireFace model files. Please check if model files exist in: " + path);
-    }
-    else if (result == HERR_ARCHIVE_LOAD_FAILURE)
-    {
-      throw std::runtime_error("Failed to load InspireFace archive. Please check if resource files exist in: " + path);
-    }
-    else if (result == HERR_ARCHIVE_FILE_FORMAT_ERROR)
-    {
-      throw std::runtime_error("Invalid InspireFace archive format in: " + path);
-    }
-    else if (result != HSUCCEED)
-    {
-      throw std::runtime_error("Failed to initialize InspireFace SDK with error code: " + std::to_string(result));
+      throw std::runtime_error("Failed to launch InspireFace SDK with error code: " + std::to_string(result));
     }
   }
 
   void NitroInspireFace::featureHubDataEnable(const FeatureHubConfiguration &config)
   {
-    // Convert the configuration to C struct
-    HFFeatureHubConfiguration cConfig;
-    cConfig.primaryKeyMode = static_cast<HFPKMode>(config.primaryKeyMode);
-    cConfig.enablePersistence = config.enablePersistence ? 1 : 0;
-
-    // Create a non-const char buffer for the path
+    HFFeatureHubConfiguration hfConfig;
+    hfConfig.searchMode = static_cast<HFSearchMode>(config.searchMode);
+    hfConfig.enablePersistence = config.enablePersistence ? 1 : 0;
+    // Create a non-const buffer for the path
     char *pathBuffer = new char[config.persistenceDbPath.length() + 1];
     std::strcpy(pathBuffer, config.persistenceDbPath.c_str());
-    cConfig.persistenceDbPath = pathBuffer;
+    hfConfig.persistenceDbPath = pathBuffer;
+    hfConfig.searchThreshold = static_cast<float>(config.searchThreshold);
+    hfConfig.primaryKeyMode = static_cast<HFPKMode>(config.primaryKeyMode);
 
-    cConfig.searchThreshold = static_cast<float>(config.searchThreshold);
-    cConfig.searchMode = static_cast<HFSearchMode>(config.searchMode);
+    HResult result = HFFeatureHubDataEnable(hfConfig);
 
-    // Enable the feature hub
-    HResult result = HFFeatureHubDataEnable(cConfig);
-
-    // Clean up allocated memory
+    // Clean up the path buffer
     delete[] pathBuffer;
 
     if (result != HSUCCEED)
     {
-      throw std::runtime_error("Failed to enable FeatureHub with error code: " + std::to_string(result));
+      throw std::runtime_error("Failed to enable feature hub data with error code: " + std::to_string(result));
     }
   }
 
@@ -83,42 +66,161 @@ namespace margelo::nitro::nitroinspireface
     HResult result = HFFeatureHubFaceSearchThresholdSetting(static_cast<float>(threshold));
     if (result != HSUCCEED)
     {
-      throw std::runtime_error("Failed to set face search threshold with error code: " + std::to_string(result));
+      throw std::runtime_error("Failed to set feature hub face search threshold with error code: " + std::to_string(result));
     }
   }
 
-  std::shared_ptr<HybridSessionSpec> NitroInspireFace::createSession(
+  std::shared_ptr<HybridNitroSessionSpec> NitroInspireFace::createSession(
       const SessionCustomParameter &parameter,
       DetectMode detectMode,
       double maxDetectFaceNum,
       double detectPixelLevel,
       double trackByDetectModeFPS)
   {
-    // Convert the parameter to C struct
-    HFSessionCustomParameter cParam;
-    cParam.enable_recognition = parameter.enableRecognition ? 1 : 0;
-    cParam.enable_liveness = parameter.enableLiveness ? 1 : 0;
-    cParam.enable_ir_liveness = parameter.enableIrLiveness ? 1 : 0;
-    cParam.enable_mask_detect = parameter.enableMaskDetect ? 1 : 0;
-    cParam.enable_face_quality = parameter.enableFaceQuality ? 1 : 0;
-    cParam.enable_face_attribute = parameter.enableFaceAttribute ? 1 : 0;
-    cParam.enable_interaction_liveness = parameter.enableInteractionLiveness ? 1 : 0;
-    cParam.enable_detect_mode_landmark = parameter.enableDetectModeLandmark ? 1 : 0;
+    HFSessionCustomParameter hfParam;
+    hfParam.enable_recognition = parameter.enableRecognition ? 1 : 0;
+    hfParam.enable_liveness = parameter.enableLiveness ? 1 : 0;
+    hfParam.enable_ir_liveness = parameter.enableIrLiveness ? 1 : 0;
+    hfParam.enable_mask_detect = parameter.enableMaskDetect ? 1 : 0;
+    hfParam.enable_face_quality = parameter.enableFaceQuality ? 1 : 0;
+    hfParam.enable_face_attribute = parameter.enableFaceAttribute ? 1 : 0;
+    hfParam.enable_interaction_liveness = parameter.enableInteractionLiveness ? 1 : 0;
+    hfParam.enable_detect_mode_landmark = parameter.enableDetectModeLandmark ? 1 : 0;
 
     HFSession session = nullptr;
     HResult result = HFCreateInspireFaceSession(
-        cParam,
+        hfParam,
         static_cast<HFDetectMode>(detectMode),
         static_cast<HInt32>(maxDetectFaceNum),
         static_cast<HInt32>(detectPixelLevel),
         static_cast<HInt32>(trackByDetectModeFPS),
         &session);
 
-    if (result != HSUCCEED)
+    if (result != HSUCCEED || session == nullptr)
     {
       throw std::runtime_error("Failed to create session with error code: " + std::to_string(result));
     }
 
     return std::make_shared<NitroSession>(session);
+  }
+
+  ImageBitmap NitroInspireFace::createImageBitmapFromFilePath(double channels, const std::string &filePath)
+  {
+    HFImageBitmap bitmap = nullptr;
+    HResult result = HFCreateImageBitmapFromFilePath(filePath.c_str(), static_cast<HInt32>(channels), &bitmap);
+    if (result != HSUCCEED || bitmap == nullptr)
+    {
+      throw std::runtime_error("Failed to create image bitmap from file with error code: " + std::to_string(result));
+    }
+
+    // Get bitmap info
+    HFImageBitmapData bitmapData;
+    result = HFImageBitmapGetData(bitmap, &bitmapData);
+    if (result != HSUCCEED)
+    {
+      HFReleaseImageBitmap(bitmap);
+      throw std::runtime_error("Failed to get bitmap data with error code: " + std::to_string(result));
+    }
+
+    // Copy data to our own buffer
+    size_t dataSize = bitmapData.width * bitmapData.height * bitmapData.channels;
+    auto buffer = ArrayBuffer::copy(bitmapData.data, dataSize);
+
+    // Clean up HF bitmap
+    HFReleaseImageBitmap(bitmap);
+
+    return ImageBitmap(
+        static_cast<double>(bitmapData.width),
+        static_cast<double>(bitmapData.height),
+        static_cast<double>(bitmapData.channels),
+        buffer);
+  }
+
+  std::shared_ptr<HybridNitroImageStreamSpec> NitroInspireFace::createImageStreamFromBitmap(const ImageBitmap &bitmap, CameraRotation rotation)
+  {
+    // Get raw data from ArrayBuffer and ensure it stays alive
+    auto buffer = bitmap.data;
+    auto rawData = reinterpret_cast<uint8_t *>(buffer->data());
+    if (!rawData)
+    {
+      throw std::runtime_error("Failed to get data from ArrayBuffer");
+    }
+
+    // Create HFImageBitmap from raw data
+    HFImageBitmapData bitmapData;
+    bitmapData.data = rawData;
+    bitmapData.width = static_cast<HInt32>(bitmap.width);
+    bitmapData.height = static_cast<HInt32>(bitmap.height);
+    bitmapData.channels = static_cast<HInt32>(bitmap.channels);
+
+    HFImageBitmap hfBitmap = nullptr;
+    HResult result = HFCreateImageBitmap(&bitmapData, &hfBitmap);
+    if (result != HSUCCEED || hfBitmap == nullptr)
+    {
+      throw std::runtime_error("Failed to create HFImageBitmap with error code: " + std::to_string(result));
+    }
+
+    // Create stream from bitmap
+    HFImageStream stream = nullptr;
+    result = HFCreateImageStreamFromImageBitmap(
+        hfBitmap,
+        static_cast<HFRotation>(rotation),
+        &stream);
+
+    // Clean up bitmap
+    HFReleaseImageBitmap(hfBitmap);
+
+    if (result != HSUCCEED || stream == nullptr)
+    {
+      throw std::runtime_error("Failed to create image stream from bitmap with error code: " + std::to_string(result));
+    }
+
+    return std::make_shared<NitroImageStream>(stream);
+  }
+
+  std::vector<Point2f> NitroInspireFace::getFaceDenseLandmarkFromFaceToken(const FaceBasicToken &token)
+  {
+    // Get the number of landmarks from the InspireFace API
+    int32_t numLandmarks = 0;
+    HResult result = HFGetNumOfFaceDenseLandmark(&numLandmarks);
+    if (result != HSUCCEED || numLandmarks <= 0)
+    {
+      throw std::runtime_error("Failed to get number of face landmarks with error code: " + std::to_string(result));
+    }
+
+    // Create the HFFaceBasicToken structure from our token
+    HFFaceBasicToken faceToken;
+    faceToken.size = static_cast<HInt32>(token.size);
+
+    // Get the raw data from the ArrayBuffer
+    auto buffer = token.data;
+    if (!buffer || buffer->size() == 0)
+    {
+      throw std::runtime_error("Invalid face token data");
+    }
+    faceToken.data = reinterpret_cast<void *>(buffer->data());
+
+    // Allocate memory for landmarks
+    auto landmarks = std::make_unique<HPoint2f[]>(numLandmarks);
+
+    // Get the landmarks from the token
+    result = HFGetFaceDenseLandmarkFromFaceToken(faceToken, landmarks.get(), numLandmarks);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to get face dense landmarks with error code: " + std::to_string(result));
+    }
+
+    // Convert to Point2f vector
+    std::vector<Point2f> landmarkPoints;
+    landmarkPoints.reserve(numLandmarks);
+
+    for (int i = 0; i < numLandmarks; i++)
+    {
+      landmarkPoints.emplace_back(
+          static_cast<double>(landmarks[i].x),
+          static_cast<double>(landmarks[i].y));
+    }
+
+    return landmarkPoints;
   }
 } // namespace margelo::nitro::nitroinspireface
