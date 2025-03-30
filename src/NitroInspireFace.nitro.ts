@@ -86,6 +86,17 @@ export type FaceFeature = {
   data: ArrayBuffer;
 };
 
+export type FaceFeatureIdentity = {
+  id: number;
+  feature: FaceFeature;
+  confidence?: number;
+};
+
+export type SearchTopKResult = {
+  confidence: number;
+  id: number;
+};
+
 export interface NitroInspireFace
   extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
   readonly version: string;
@@ -109,6 +120,16 @@ export interface NitroInspireFace
     rotation: CameraRotation
   ): NitroImageStream;
   getFaceDenseLandmarkFromFaceToken(token: FaceBasicToken): Point2f[];
+  featureHubFaceInsert(feature: FaceFeatureIdentity): number;
+  featureHubFaceUpdate(feature: FaceFeatureIdentity): boolean;
+  featureHubFaceRemove(id: number): boolean;
+  featureHubFaceSearch(feature: FaceFeature): FaceFeatureIdentity;
+  featureHubGetFaceIdentity(id: number): FaceFeatureIdentity;
+  featureHubFaceSearchTopK(
+    feature: FaceFeature,
+    topK: number
+  ): SearchTopKResult[];
+  getFeatureLength(): number;
 }
 export interface NitroImageStream
   extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
@@ -124,4 +145,9 @@ export interface NitroSession
     imageStream: NitroImageStream,
     faceToken: FaceBasicToken
   ): FaceFeature;
+  multipleFacePipelineProcess(
+    imageStream: NitroImageStream,
+    multipleFaceData: MultipleFaceData,
+    parameter: SessionCustomParameter
+  ): MultipleFaceData;
 }

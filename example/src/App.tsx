@@ -67,13 +67,41 @@ export default function App() {
           const lmk = InspireFace.getFaceDenseLandmarkFromFaceToken(
             multipleFaceData.tokens[0]
           );
+          console.log('lmk', lmk.length);
           const feature = session.extractFaceFeature(
             imageStream,
             multipleFaceData.tokens[0]
           );
-          console.log('feature', feature);
-          console.log('lmk', lmk);
-          console.log('multipleFaceData', multipleFaceData.rects);
+
+          for (let i = 0; i < 10; i++) {
+            const result = InspireFace.featureHubFaceInsert({
+              id: -1,
+              feature,
+            });
+            console.log('result', result);
+          }
+
+          console.log('Feature size: ', new Float32Array(feature.data).length);
+
+          const searched = InspireFace.featureHubFaceSearch(feature);
+          // console.log('searched', searched);
+          console.log(
+            'searched',
+            searched.id,
+            'confidence',
+            searched.confidence
+          );
+
+          const topKResults = InspireFace.featureHubFaceSearchTopK(feature, 10);
+          console.log('topKResults', topKResults.length);
+          topKResults.forEach((result) => {
+            console.log(
+              'TopK id: ',
+              result.id,
+              'Confidence: ',
+              result.confidence
+            );
+          });
         }
         // cosnt;
         // const data = imageStream

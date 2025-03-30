@@ -50,6 +50,13 @@ namespace margelo::nitro::nitroinspireface
     ImageBitmap createImageBitmapFromFilePath(double channels, const std::string &filePath) override;
     std::shared_ptr<HybridNitroImageStreamSpec> createImageStreamFromBitmap(const ImageBitmap &bitmap, CameraRotation rotation) override;
     std::vector<Point2f> getFaceDenseLandmarkFromFaceToken(const FaceBasicToken &token) override;
+    double featureHubFaceInsert(const FaceFeatureIdentity &feature) override;
+    bool featureHubFaceUpdate(const FaceFeatureIdentity &feature) override;
+    bool featureHubFaceRemove(double id) override;
+    FaceFeatureIdentity featureHubFaceSearch(const FaceFeature &feature) override;
+    FaceFeatureIdentity featureHubGetFaceIdentity(double id) override;
+    std::vector<SearchTopKResult> featureHubFaceSearchTopK(const FaceFeature &feature, double topK) override;
+    double getFeatureLength() override;
   };
 
 } // namespace margelo::nitro::nitroinspireface

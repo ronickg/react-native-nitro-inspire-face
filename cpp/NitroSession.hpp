@@ -32,6 +32,7 @@ namespace margelo::nitro::nitroinspireface
     void setFilterMinimumFacePixelSize(double size) override;
     MultipleFaceData executeFaceTrack(const std::shared_ptr<HybridNitroImageStreamSpec> &imageStream) override;
     FaceFeature extractFaceFeature(const std::shared_ptr<HybridNitroImageStreamSpec> &imageStream, const FaceBasicToken &faceToken) override;
+    MultipleFaceData multipleFacePipelineProcess(const std::shared_ptr<HybridNitroImageStreamSpec> &imageStream, const MultipleFaceData &multipleFaceData, const SessionCustomParameter &parameter) override;
 
   private:
     HFSession _session;

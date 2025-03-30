@@ -223,4 +223,147 @@ namespace margelo::nitro::nitroinspireface
 
     return landmarkPoints;
   }
+
+  double NitroInspireFace::featureHubFaceInsert(const FaceFeatureIdentity &feature)
+  {
+    // Convert FaceFeature to HFFaceFeature
+    HFFaceFeature hfFeature;
+    hfFeature.size = static_cast<HInt32>(feature.feature.size);
+    hfFeature.data = reinterpret_cast<HPFloat>(feature.feature.data->data());
+
+    // Create feature identity struct
+    HFFaceFeatureIdentity identity;
+    identity.id = static_cast<HFaceId>(feature.id);
+    identity.feature = &hfFeature;
+
+    // Insert the feature
+    HFaceId allocId;
+    HResult result = HFFeatureHubInsertFeature(identity, &allocId);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to insert feature with error code: " + std::to_string(result));
+    }
+    return allocId;
+  }
+
+  bool NitroInspireFace::featureHubFaceUpdate(const FaceFeatureIdentity &feature)
+  {
+    // Convert FaceFeature to HFFaceFeature
+    HFFaceFeature hfFeature;
+    hfFeature.size = static_cast<HInt32>(feature.feature.size);
+    hfFeature.data = reinterpret_cast<HPFloat>(feature.feature.data->data());
+
+    // Create feature identity struct
+    HFFaceFeatureIdentity identity;
+    identity.id = static_cast<HFaceId>(feature.id);
+    identity.feature = &hfFeature;
+
+    // Update the feature
+    HResult result = HFFeatureHubFaceUpdate(identity);
+    return result == HSUCCEED;
+  }
+
+  bool NitroInspireFace::featureHubFaceRemove(double id)
+  {
+    HResult result = HFFeatureHubFaceRemove(static_cast<HFaceId>(id));
+    return result == HSUCCEED;
+  }
+
+  FaceFeatureIdentity NitroInspireFace::featureHubFaceSearch(const FaceFeature &feature)
+  {
+    // Convert FaceFeature to HFFaceFeature
+    HFFaceFeature hfFeature;
+    hfFeature.size = static_cast<HInt32>(feature.size);
+    hfFeature.data = reinterpret_cast<HPFloat>(feature.data->data());
+
+    // Create variables for search results
+    HFloat confidence = 0;
+    HFFaceFeatureIdentity mostSimilar = {};
+
+    // Search for the face
+    HResult result = HFFeatureHubFaceSearch(hfFeature, &confidence, &mostSimilar);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to search face with error code: " + std::to_string(result));
+    }
+
+    // Convert HFFaceFeature to FaceFeature
+    auto buffer = margelo::nitro::ArrayBuffer::copy(
+        reinterpret_cast<uint8_t *>(mostSimilar.feature->data),
+        mostSimilar.feature->size * sizeof(float));
+
+    FaceFeature resultFeature(
+        static_cast<double>(mostSimilar.feature->size),
+        buffer);
+
+    // Return the FaceFeatureIdentity with confidence
+    return FaceFeatureIdentity(
+        static_cast<double>(mostSimilar.id),
+        resultFeature,
+        std::make_optional(static_cast<double>(confidence)));
+  }
+
+  FaceFeatureIdentity NitroInspireFace::featureHubGetFaceIdentity(double id)
+  {
+    HFFaceFeatureIdentity identity = {};
+    HResult result = HFFeatureHubGetFaceIdentity(static_cast<HFaceId>(id), &identity);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to get face identity with error code: " + std::to_string(result));
+    }
+
+    // Convert HFFaceFeature to FaceFeature
+    auto buffer = margelo::nitro::ArrayBuffer::copy(
+        reinterpret_cast<uint8_t *>(identity.feature->data),
+        identity.feature->size * sizeof(float));
+
+    FaceFeature feature(
+        static_cast<double>(identity.feature->size),
+        buffer);
+
+    // Return the FaceFeatureIdentity with no confidence (since this is just a retrieval)
+    return FaceFeatureIdentity(
+        static_cast<double>(identity.id),
+        feature,
+        std::nullopt);
+  }
+
+  std::vector<SearchTopKResult> NitroInspireFace::featureHubFaceSearchTopK(const FaceFeature &feature, double topK)
+  {
+    // Convert FaceFeature to HFFaceFeature
+    HFFaceFeature hfFeature;
+    hfFeature.size = static_cast<HInt32>(feature.size);
+    hfFeature.data = reinterpret_cast<HPFloat>(feature.data->data());
+
+    // Create search results struct
+    HFSearchTopKResults results = {};
+    HResult result = HFFeatureHubFaceSearchTopK(hfFeature, static_cast<HInt32>(topK), &results);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to search top-k faces with error code: " + std::to_string(result));
+    }
+
+    // Convert results to vector of SearchTopKResult
+    std::vector<SearchTopKResult> searchResults;
+    searchResults.reserve(results.size);
+    for (int i = 0; i < results.size; i++)
+    {
+      searchResults.push_back(SearchTopKResult(
+          static_cast<double>(results.confidence[i]),
+          static_cast<double>(results.ids[i])));
+    }
+
+    return searchResults;
+  }
+
+  double NitroInspireFace::getFeatureLength()
+  {
+    HInt32 length = 0;
+    HResult result = HFGetFeatureLength(&length);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to get feature length with error code: " + std::to_string(result));
+    }
+    return static_cast<double>(length);
+  }
 } // namespace margelo::nitro::nitroinspireface
