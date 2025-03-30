@@ -23,7 +23,14 @@ namespace margelo::nitro::nitroinspireface
     NitroSession(HFSession session) : HybridObject(TAG), _session(session) {}
 
     // Destructor
-    ~NitroSession() override;
+    ~NitroSession() override
+    {
+      if (_session != nullptr)
+      {
+        HFReleaseInspireFaceSession(_session);
+        _session = nullptr;
+      }
+    }
 
   private:
     static constexpr auto TAG = "NitroSession";

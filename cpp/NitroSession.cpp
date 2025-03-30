@@ -18,15 +18,6 @@
 
 namespace margelo::nitro::nitroinspireface
 {
-  NitroSession::~NitroSession()
-  {
-    if (_session != nullptr)
-    {
-      HFReleaseInspireFaceSession(_session);
-      _session = nullptr;
-    }
-  }
-
   void NitroSession::setTrackPreviewSize(double size)
   {
     if (_session == nullptr)
@@ -241,13 +232,17 @@ namespace margelo::nitro::nitroinspireface
     HFFaceBasicToken token = {};
     token.size = static_cast<HInt32>(faceToken.size);
 
-    // Get the raw data from the ArrayBuffer
+    // Ensure buffer remains valid
     auto buffer = faceToken.data;
     if (!buffer || buffer->size() == 0)
     {
       throw std::runtime_error("Invalid face token data");
     }
-    token.data = reinterpret_cast<void *>(buffer->data());
+
+    // Create a copy of the data
+    void *tokenData = malloc(buffer->size());
+    memcpy(tokenData, buffer->data(), buffer->size());
+    token.data = tokenData;
 
     // Initialize feature struct with zeros
     HFFaceFeature feature = {};

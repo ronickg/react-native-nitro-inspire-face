@@ -14,6 +14,8 @@ import { useEffect } from 'react';
 export default function App() {
   useEffect(() => {
     const initFaceDetection = async () => {
+      console.log(RNFS.DocumentDirectoryPath + '/Pikachu');
+
       try {
         const fileExists = await RNFS.exists(
           RNFS.DocumentDirectoryPath + '/Pikachu'
@@ -50,13 +52,14 @@ export default function App() {
           -1,
           -1
         );
-        session.setTrackPreviewSize(320);
+        // session.setTrackPreviewSize(320);
+        session.setTrackPreviewSize(640);
         session.setFaceDetectThreshold(0.5);
         session.setFilterMinimumFacePixelSize(0);
 
         const bitmap = InspireFace.createImageBitmapFromFilePath(
           3,
-          RNFS.DocumentDirectoryPath + '/kun.jpg'
+          RNFS.DocumentDirectoryPath + '/kun6.jpg'
         );
         console.log('bitmap', new Uint8Array(bitmap.data).length);
         const imageStream = InspireFace.createImageStreamFromBitmap(
@@ -197,8 +200,6 @@ export default function App() {
           const end = performance.now();
           console.log(`Time taken: ${end - start} milliseconds`);
         }
-        // cosnt;
-        // const data = imageStream
       } catch (err) {
         console.log('err', err);
       }
