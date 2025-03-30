@@ -1,26 +1,22 @@
 # react-native-nitro-inspire-face
 
-bob
+## Running the example
 
-## Installation
+First, install the dependencies:
 
 ```sh
-npm install react-native-nitro-inspire-face react-native-nitro-modules
-
-> `react-native-nitro-modules` is required as this library relies on [Nitro Modules](https://nitro.margelo.com/).
+yarn
 ```
 
-## Usage
+Then run the example app:
 
+```sh
+# For Android
+yarn example android
 
-```js
-import { multiply } from 'react-native-nitro-inspire-face';
-
-// ...
-
-const result = multiply(3, 7);
+# For iOS
+yarn example ios
 ```
-
 
 ## Contributing
 
