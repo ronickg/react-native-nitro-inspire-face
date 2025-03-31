@@ -4,3 +4,5 @@ export * from './NitroInspireFace.nitro';
 
 export const InspireFace =
   NitroModules.createHybridObject<NitroInspireFace>('NitroInspireFace');
+
+export const BoxedInspireFace = NitroModules.box(InspireFace);

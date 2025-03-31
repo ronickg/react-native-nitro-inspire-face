@@ -5,6 +5,7 @@
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",
+  "types": "./lib/typescript/module/src/index.d.ts",
   "exports": {
     ".": {
       "import": {
@@ -82,7 +83,7 @@
     "prettier": "^3.0.3",
     "react": "19.0.0",
     "react-native": "0.78.1",
-    "react-native-builder-bob": "^0.36.0",
+    "react-native-builder-bob": "^0.39.0",
     "react-native-nitro-modules": "^0.22.1",
     "release-it": "^17.10.0",
     "turbo": "^1.10.7",
@@ -166,6 +167,13 @@
     "source": "src",
     "output": "lib",
     "targets": [
+      [
+        "custom",
+        {
+          "script": "nitrogen",
+          "clean": "nitrogen/"
+        }
+      ],
       [
         "commonjs",
         {
