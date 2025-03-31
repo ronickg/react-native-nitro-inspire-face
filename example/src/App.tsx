@@ -1,21 +1,31 @@
-import { View, StyleSheet } from 'react-native';
-import InspireFace, {
+import { StyleSheet, View } from 'react-native';
+import RNFS from 'react-native-fs';
+import {
   CameraRotation,
   DetectMode,
+  InspireFace,
   PrimaryKeyMode,
   SearchMode,
   type FaceFeature,
   type FaceFeatureIdentity,
   type SessionCustomParameter,
 } from 'react-native-nitro-inspire-face';
-import RNFS from 'react-native-fs';
 import { useEffect } from 'react';
+
+InspireFace.featureHubDataEnable({
+  enablePersistence: false,
+  persistenceDbPath: `${RNFS.DocumentDirectoryPath}/f.db`,
+  searchThreshold: 0.42,
+  searchMode: SearchMode.EXHAUSTIVE,
+  primaryKeyMode: PrimaryKeyMode.AUTO_INCREMENT,
+});
+InspireFace.featureHubFaceSearchThresholdSetting(0.42);
+InspireFace.launch(RNFS.DocumentDirectoryPath + '/Pikachu');
 
 export default function App() {
   useEffect(() => {
     const initFaceDetection = async () => {
       console.log(RNFS.DocumentDirectoryPath + '/Pikachu');
-
       try {
         const fileExists = await RNFS.exists(
           RNFS.DocumentDirectoryPath + '/Pikachu'
@@ -25,7 +35,6 @@ export default function App() {
           console.log('Pikachu does not exist');
           return;
         }
-
         InspireFace.featureHubDataEnable({
           enablePersistence: false,
           persistenceDbPath: `${RNFS.DocumentDirectoryPath}/f.db`,
@@ -34,7 +43,6 @@ export default function App() {
           primaryKeyMode: PrimaryKeyMode.AUTO_INCREMENT,
         });
         InspireFace.featureHubFaceSearchThresholdSetting(0.42);
-
         InspireFace.launch(RNFS.DocumentDirectoryPath + '/Pikachu');
         const session = InspireFace.createSession(
           {
@@ -44,19 +52,15 @@ export default function App() {
             enableInteractionLiveness: true,
             enableLiveness: true,
             enableMaskDetect: true,
-            // enableIrLiveness: false,
-            // enableDetectModeLandmark: false,
           },
           DetectMode.ALWAYS_DETECT,
           10,
           -1,
           -1
         );
-        // session.setTrackPreviewSize(320);
-        session.setTrackPreviewSize(640);
+        session.setTrackPreviewSize(320);
         session.setFaceDetectThreshold(0.5);
         session.setFilterMinimumFacePixelSize(0);
-
         const bitmap = InspireFace.createImageBitmapFromFilePath(
           3,
           RNFS.DocumentDirectoryPath + '/kun6.jpg'
@@ -66,20 +70,18 @@ export default function App() {
           bitmap,
           CameraRotation.ROTATION_0
         );
-        // console.log('imageStream', imageStream);
         imageStream.writeImageToFile(RNFS.DocumentDirectoryPath + '/kun1.jpg');
         const multipleFaceData = session.executeFaceTrack(imageStream);
-        console.log('multipleFaceData', multipleFaceData.detectedNum);
-        if (multipleFaceData.detectedNum > 0 && multipleFaceData.tokens[0]) {
+        console.log('multipleFaceData', multipleFaceData.length);
+        if (multipleFaceData.length > 0 && multipleFaceData[0]) {
           const lmk = InspireFace.getFaceDenseLandmarkFromFaceToken(
-            multipleFaceData.tokens[0]
+            multipleFaceData[0].token
           );
           console.log('lmk', lmk.length);
           const feature = session.extractFaceFeature(
             imageStream,
-            multipleFaceData.tokens[0]
+            multipleFaceData[0].token
           );
-
           for (let i = 0; i < 10; i++) {
             const result = InspireFace.featureHubFaceInsert({
               id: -1,
@@ -87,9 +89,7 @@ export default function App() {
             });
             console.log('result', result);
           }
-
-          console.log('Feature size: ', new Float32Array(feature.data).length);
-
+          console.log('Feature size: ', feature.length);
           const searched = InspireFace.featureHubFaceSearch(feature);
           if (searched) {
             console.log(
@@ -99,7 +99,6 @@ export default function App() {
               searched.confidence
             );
           }
-
           const topKResults = InspireFace.featureHubFaceSearchTopK(feature, 10);
           console.log('topKResults', topKResults.length);
           topKResults.forEach((result) => {
@@ -110,11 +109,10 @@ export default function App() {
               result.confidence
             );
           });
+          const newFeature: FaceFeature = new Array(
+            InspireFace.getFeatureLength()
+          ).fill(0);
 
-          const newFeature: FaceFeature = {
-            size: InspireFace.getFeatureLength(),
-            data: new Float32Array(feature.data).buffer,
-          };
           const identity: FaceFeatureIdentity = {
             id: 8,
             feature: newFeature,
@@ -140,9 +138,7 @@ export default function App() {
               result.confidence
             );
           });
-
           const start = performance.now();
-
           let queryIdentity = InspireFace.featureHubGetFaceIdentity(4);
           if (queryIdentity) {
             console.log('Query identity: ', queryIdentity.id);
@@ -151,12 +147,8 @@ export default function App() {
           }
           queryIdentity = InspireFace.featureHubGetFaceIdentity(2);
           if (queryIdentity) {
-            console.log(
-              'strFt',
-              new Float32Array(queryIdentity.feature.data).length
-            );
+            console.log('strFt', queryIdentity.feature.length);
             console.log('query id: ', queryIdentity.id);
-
             const comp = InspireFace.faceComparison(
               queryIdentity.feature,
               feature
@@ -165,7 +157,6 @@ export default function App() {
           } else {
             console.log('Query identity failed');
           }
-
           const pipelineNeedParam: SessionCustomParameter = {
             enableFaceQuality: true,
             enableLiveness: true,
@@ -199,12 +190,15 @@ export default function App() {
           }
           const end = performance.now();
           console.log(`Time taken: ${end - start} milliseconds`);
+
+          //Close the image stream and session
+          imageStream.dispose();
+          session.dispose();
         }
       } catch (err) {
         console.log('err', err);
       }
     };
-
     initFaceDetection();
   }, []);
 
@@ -214,8 +208,6 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   error: {
     color: 'red',

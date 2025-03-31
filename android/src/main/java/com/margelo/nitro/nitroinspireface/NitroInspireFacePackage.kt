@@ -1,4 +1,4 @@
-package com.nitroinspireface
+package com.margelo.nitro.nitroinspireface
 
 import com.facebook.react.TurboReactPackage
 import com.facebook.react.bridge.NativeModule

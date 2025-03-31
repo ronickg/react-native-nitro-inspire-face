@@ -36,12 +36,10 @@ namespace margelo::nitro::nitroinspireface
     static constexpr auto TAG = "NitroInspireFace";
 
   public:
-    // Methods
-    double multiply(double a, double b) override;
     std::string getVersion() override;
-    void launch(const std::string &path) override;
-    void featureHubDataEnable(const FeatureHubConfiguration &config) override;
-    void featureHubFaceSearchThresholdSetting(double threshold) override;
+    bool launch(const std::string &path) override;
+    bool featureHubDataEnable(const FeatureHubConfiguration &config) override;
+    bool featureHubFaceSearchThresholdSetting(double threshold) override;
     std::shared_ptr<HybridNitroSessionSpec> createSession(
         const SessionCustomParameter &parameter,
         DetectMode detectMode,
@@ -49,16 +47,17 @@ namespace margelo::nitro::nitroinspireface
         double detectPixelLevel,
         double trackByDetectModeFPS) override;
     ImageBitmap createImageBitmapFromFilePath(double channels, const std::string &filePath) override;
+    ImageBitmap createImageBitmapFromBuffer(const std::shared_ptr<ArrayBuffer> &buffer, double width, double height, double channels) override;
     std::shared_ptr<HybridNitroImageStreamSpec> createImageStreamFromBitmap(const ImageBitmap &bitmap, CameraRotation rotation) override;
-    std::vector<Point2f> getFaceDenseLandmarkFromFaceToken(const FaceBasicToken &token) override;
+    std::vector<Point2f> getFaceDenseLandmarkFromFaceToken(const std::shared_ptr<ArrayBuffer> &token) override;
     double featureHubFaceInsert(const FaceFeatureIdentity &feature) override;
     bool featureHubFaceUpdate(const FaceFeatureIdentity &feature) override;
     bool featureHubFaceRemove(double id) override;
-    std::optional<FaceFeatureIdentity> featureHubFaceSearch(const FaceFeature &feature) override;
+    std::optional<FaceFeatureIdentity> featureHubFaceSearch(const std::vector<double> &feature) override;
     std::optional<FaceFeatureIdentity> featureHubGetFaceIdentity(double id) override;
-    std::vector<SearchTopKResult> featureHubFaceSearchTopK(const FaceFeature &feature, double topK) override;
+    std::vector<SearchTopKResult> featureHubFaceSearchTopK(const std::vector<double> &feature, double topK) override;
     double getFeatureLength() override;
-    double faceComparison(const FaceFeature &feature1, const FaceFeature &feature2) override;
+    double faceComparison(const std::vector<double> &feature1, const std::vector<double> &feature2) override;
   };
 
 } // namespace margelo::nitro::nitroinspireface

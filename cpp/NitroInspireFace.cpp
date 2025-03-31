@@ -10,18 +10,6 @@
 
 namespace margelo::nitro::nitroinspireface
 {
-  // // Helper function to check if a path exists
-  // bool pathExists(const std::string &path)
-  // {
-  //   struct stat buffer;
-  //   return (stat(path.c_str(), &buffer) == 0);
-  // }
-
-  double NitroInspireFace::multiply(double a, double b)
-  {
-    return a * b;
-  }
-
   std::string NitroInspireFace::getVersion()
   {
     HFInspireFaceVersion version;
@@ -30,16 +18,18 @@ namespace margelo::nitro::nitroinspireface
     // return "1.0.0";
   }
 
-  void NitroInspireFace::launch(const std::string &path)
+  bool NitroInspireFace::launch(const std::string &path)
   {
     HResult result = HFLaunchInspireFace(path.c_str());
     if (result != HSUCCEED)
     {
-      throw std::runtime_error("Failed to launch InspireFace SDK with error code: " + std::to_string(result));
+      Logger::log(LogLevel::Error, TAG, "Failed to launch InspireFace SDK with error code: %ld", result);
+      return false;
     }
+    return true;
   }
 
-  void NitroInspireFace::featureHubDataEnable(const FeatureHubConfiguration &config)
+  bool NitroInspireFace::featureHubDataEnable(const FeatureHubConfiguration &config)
   {
     HFFeatureHubConfiguration hfConfig;
     hfConfig.searchMode = static_cast<HFSearchMode>(config.searchMode);
@@ -58,17 +48,21 @@ namespace margelo::nitro::nitroinspireface
 
     if (result != HSUCCEED)
     {
-      throw std::runtime_error("Failed to enable feature hub data with error code: " + std::to_string(result));
+      Logger::log(LogLevel::Error, TAG, "Failed to enable feature hub data with error code: %ld", result);
+      return false;
     }
+    return true;
   }
 
-  void NitroInspireFace::featureHubFaceSearchThresholdSetting(double threshold)
+  bool NitroInspireFace::featureHubFaceSearchThresholdSetting(double threshold)
   {
     HResult result = HFFeatureHubFaceSearchThresholdSetting(static_cast<float>(threshold));
     if (result != HSUCCEED)
     {
-      throw std::runtime_error("Failed to set feature hub face search threshold with error code: " + std::to_string(result));
+      Logger::log(LogLevel::Error, TAG, "Failed to set feature hub face search threshold with error code: %ld", result);
+      return false;
     }
+    return true;
   }
 
   std::shared_ptr<HybridNitroSessionSpec> NitroInspireFace::createSession(
@@ -137,6 +131,45 @@ namespace margelo::nitro::nitroinspireface
         buffer);
   }
 
+  ImageBitmap NitroInspireFace::createImageBitmapFromBuffer(const std::shared_ptr<ArrayBuffer> &buffer, double width, double height, double channels)
+  {
+    // Create bitmap data structure
+    HFImageBitmapData bitmapData;
+    bitmapData.data = reinterpret_cast<uint8_t *>(buffer->data());
+    bitmapData.width = static_cast<HInt32>(width);
+    bitmapData.height = static_cast<HInt32>(height);
+    bitmapData.channels = static_cast<HInt32>(channels);
+
+    // Create bitmap from data
+    HFImageBitmap bitmap = nullptr;
+    HResult result = HFCreateImageBitmap(&bitmapData, &bitmap);
+    if (result != HSUCCEED || bitmap == nullptr)
+    {
+      throw std::runtime_error("Failed to create image bitmap from buffer with error code: " + std::to_string(result));
+    }
+
+    // Get bitmap info to return as ImageBitmap
+    result = HFImageBitmapGetData(bitmap, &bitmapData);
+    if (result != HSUCCEED)
+    {
+      HFReleaseImageBitmap(bitmap);
+      throw std::runtime_error("Failed to get bitmap data with error code: " + std::to_string(result));
+    }
+
+    // Copy data to our own buffer
+    size_t dataSize = bitmapData.width * bitmapData.height * bitmapData.channels;
+    auto newBuffer = ArrayBuffer::copy(bitmapData.data, dataSize);
+
+    // Clean up HF bitmap
+    HFReleaseImageBitmap(bitmap);
+
+    return ImageBitmap(
+        static_cast<double>(bitmapData.width),
+        static_cast<double>(bitmapData.height),
+        static_cast<double>(bitmapData.channels),
+        newBuffer);
+  }
+
   std::shared_ptr<HybridNitroImageStreamSpec> NitroInspireFace::createImageStreamFromBitmap(const ImageBitmap &bitmap, CameraRotation rotation)
   {
     // Get raw data from ArrayBuffer and ensure it stays alive
@@ -179,7 +212,7 @@ namespace margelo::nitro::nitroinspireface
     return std::make_shared<NitroImageStream>(stream);
   }
 
-  std::vector<Point2f> NitroInspireFace::getFaceDenseLandmarkFromFaceToken(const FaceBasicToken &token)
+  std::vector<Point2f> NitroInspireFace::getFaceDenseLandmarkFromFaceToken(const std::shared_ptr<ArrayBuffer> &token)
   {
     // Get the number of landmarks from the InspireFace API
     int32_t numLandmarks = 0;
@@ -191,15 +224,14 @@ namespace margelo::nitro::nitroinspireface
 
     // Create the HFFaceBasicToken structure from our token
     HFFaceBasicToken faceToken;
-    faceToken.size = static_cast<HInt32>(token.size);
+    faceToken.size = static_cast<HInt32>(token->size());
 
     // Get the raw data from the ArrayBuffer
-    auto buffer = token.data;
-    if (!buffer || buffer->size() == 0)
+    if (!token || token->size() == 0)
     {
       throw std::runtime_error("Invalid face token data");
     }
-    faceToken.data = reinterpret_cast<void *>(buffer->data());
+    faceToken.data = reinterpret_cast<void *>(token->data());
 
     // Allocate memory for landmarks
     auto landmarks = std::make_unique<HPoint2f[]>(numLandmarks);
@@ -227,10 +259,13 @@ namespace margelo::nitro::nitroinspireface
 
   double NitroInspireFace::featureHubFaceInsert(const FaceFeatureIdentity &feature)
   {
-    // Convert FaceFeature to HFFaceFeature
+    // Convert std::vector<double> to HFFaceFeature
     HFFaceFeature hfFeature;
-    hfFeature.size = static_cast<HInt32>(feature.feature.size);
-    hfFeature.data = reinterpret_cast<HPFloat>(feature.feature.data->data());
+    hfFeature.size = static_cast<HInt32>(feature.feature.size());
+
+    // Create a temporary buffer for the HPFloat data
+    std::vector<float> featureFloat(feature.feature.begin(), feature.feature.end());
+    hfFeature.data = reinterpret_cast<HPFloat>(featureFloat.data());
 
     // Create feature identity struct
     HFFaceFeatureIdentity identity;
@@ -249,10 +284,13 @@ namespace margelo::nitro::nitroinspireface
 
   bool NitroInspireFace::featureHubFaceUpdate(const FaceFeatureIdentity &feature)
   {
-    // Convert FaceFeature to HFFaceFeature
+    // Convert std::vector<double> to HFFaceFeature
     HFFaceFeature hfFeature;
-    hfFeature.size = static_cast<HInt32>(feature.feature.size);
-    hfFeature.data = reinterpret_cast<HPFloat>(feature.feature.data->data());
+    hfFeature.size = static_cast<HInt32>(feature.feature.size());
+
+    // Create a temporary buffer for the HPFloat data
+    std::vector<float> featureFloat(feature.feature.begin(), feature.feature.end());
+    hfFeature.data = reinterpret_cast<HPFloat>(featureFloat.data());
 
     // Create feature identity struct
     HFFaceFeatureIdentity identity;
@@ -270,12 +308,15 @@ namespace margelo::nitro::nitroinspireface
     return result == HSUCCEED;
   }
 
-  std::optional<FaceFeatureIdentity> NitroInspireFace::featureHubFaceSearch(const FaceFeature &feature)
+  std::optional<FaceFeatureIdentity> NitroInspireFace::featureHubFaceSearch(const std::vector<double> &feature)
   {
-    // Convert FaceFeature to HFFaceFeature
+    // Convert vector<double> to HFFaceFeature
     HFFaceFeature hfFeature;
-    hfFeature.size = static_cast<HInt32>(feature.size);
-    hfFeature.data = reinterpret_cast<HPFloat>(feature.data->data());
+    hfFeature.size = static_cast<HInt32>(feature.size());
+
+    // Create a temporary buffer for the HPFloat data
+    std::vector<float> featureFloat(feature.begin(), feature.end());
+    hfFeature.data = reinterpret_cast<HPFloat>(featureFloat.data());
 
     // Create variables for search results
     HFloat confidence = 0;
@@ -289,14 +330,13 @@ namespace margelo::nitro::nitroinspireface
       return std::nullopt;
     }
 
-    // Convert HFFaceFeature to FaceFeature
-    auto buffer = margelo::nitro::ArrayBuffer::copy(
-        reinterpret_cast<uint8_t *>(mostSimilar.feature->data),
-        mostSimilar.feature->size * sizeof(float));
-
-    FaceFeature resultFeature(
-        static_cast<double>(mostSimilar.feature->size),
-        buffer);
+    // Convert HFFaceFeature to std::vector<double>
+    std::vector<double> resultFeature;
+    resultFeature.reserve(mostSimilar.feature->size);
+    for (int i = 0; i < mostSimilar.feature->size; i++)
+    {
+      resultFeature.push_back(static_cast<double>(((float *)mostSimilar.feature->data)[i]));
+    }
 
     // Return the FaceFeatureIdentity with confidence
     return FaceFeatureIdentity(
@@ -315,28 +355,30 @@ namespace margelo::nitro::nitroinspireface
       return std::nullopt;
     }
 
-    // Convert HFFaceFeature to FaceFeature
-    auto buffer = margelo::nitro::ArrayBuffer::copy(
-        reinterpret_cast<uint8_t *>(identity.feature->data),
-        identity.feature->size * sizeof(float));
-
-    FaceFeature feature(
-        static_cast<double>(identity.feature->size),
-        buffer);
+    // Convert HFFaceFeature to std::vector<double>
+    std::vector<double> resultFeature;
+    resultFeature.reserve(identity.feature->size);
+    for (int i = 0; i < identity.feature->size; i++)
+    {
+      resultFeature.push_back(static_cast<double>(((float *)identity.feature->data)[i]));
+    }
 
     // Return the FaceFeatureIdentity with no confidence (since this is just a retrieval)
     return FaceFeatureIdentity(
         static_cast<double>(identity.id),
-        feature,
+        resultFeature,
         std::nullopt);
   }
 
-  std::vector<SearchTopKResult> NitroInspireFace::featureHubFaceSearchTopK(const FaceFeature &feature, double topK)
+  std::vector<SearchTopKResult> NitroInspireFace::featureHubFaceSearchTopK(const std::vector<double> &feature, double topK)
   {
-    // Convert FaceFeature to HFFaceFeature
+    // Convert vector<double> to HFFaceFeature
     HFFaceFeature hfFeature;
-    hfFeature.size = static_cast<HInt32>(feature.size);
-    hfFeature.data = reinterpret_cast<HPFloat>(feature.data->data());
+    hfFeature.size = static_cast<HInt32>(feature.size());
+
+    // Create a temporary buffer for the HPFloat data
+    std::vector<float> featureFloat(feature.begin(), feature.end());
+    hfFeature.data = reinterpret_cast<HPFloat>(featureFloat.data());
 
     // Create search results struct
     HFSearchTopKResults results = {};
@@ -370,17 +412,23 @@ namespace margelo::nitro::nitroinspireface
     return static_cast<double>(length);
   }
 
-  double NitroInspireFace::faceComparison(const FaceFeature &feature1, const FaceFeature &feature2)
+  double NitroInspireFace::faceComparison(const std::vector<double> &feature1, const std::vector<double> &feature2)
   {
-    // Convert FaceFeature to HFFaceFeature for the first feature
+    // Convert std::vector<double> to HFFaceFeature for the first feature
     HFFaceFeature hfFeature1 = {};
-    hfFeature1.size = static_cast<HInt32>(feature1.size);
-    hfFeature1.data = reinterpret_cast<HPFloat>(feature1.data->data());
+    hfFeature1.size = static_cast<HInt32>(feature1.size());
 
-    // Convert FaceFeature to HFFaceFeature for the second feature
+    // Create a temporary buffer for the HPFloat data
+    std::vector<float> feature1Float(feature1.begin(), feature1.end());
+    hfFeature1.data = reinterpret_cast<HPFloat>(feature1Float.data());
+
+    // Convert std::vector<double> to HFFaceFeature for the second feature
     HFFaceFeature hfFeature2 = {};
-    hfFeature2.size = static_cast<HInt32>(feature2.size);
-    hfFeature2.data = reinterpret_cast<HPFloat>(feature2.data->data());
+    hfFeature2.size = static_cast<HInt32>(feature2.size());
+
+    // Create a temporary buffer for the HPFloat data
+    std::vector<float> feature2Float(feature2.begin(), feature2.end());
+    hfFeature2.data = reinterpret_cast<HPFloat>(feature2Float.data());
 
     // Create variable to store comparison result
     HFloat result_value = 0.0f;

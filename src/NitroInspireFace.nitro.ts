@@ -62,18 +62,12 @@ export type FaceEulerAngle = {
   pitch: number;
 };
 
-export type FaceBasicToken = {
-  size: number;
-  data: ArrayBuffer;
-};
-
-export type MultipleFaceData = {
-  detectedNum: number;
-  rects: FaceRect[];
-  trackIds: number[];
-  detConfidence: number[];
-  angles: FaceEulerAngle;
-  tokens: FaceBasicToken[];
+export type FaceData = {
+  rect: FaceRect;
+  trackId: number;
+  detConfidence: number;
+  angle: FaceEulerAngle;
+  token: ArrayBuffer;
 };
 
 export type Point2f = {
@@ -81,10 +75,7 @@ export type Point2f = {
   y: number;
 };
 
-export type FaceFeature = {
-  size: number;
-  data: ArrayBuffer;
-};
+export type FaceFeature = number[];
 
 export type FaceFeatureIdentity = {
   id: number;
@@ -115,14 +106,12 @@ export type FaceAttributeResult = {
   gender: number;
   race: number;
 };
-
 export interface NitroInspireFace
   extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
   readonly version: string;
-  multiply(a: number, b: number): number;
-  launch(path: string): void;
-  featureHubDataEnable(config: FeatureHubConfiguration): void;
-  featureHubFaceSearchThresholdSetting(threshold: number): void;
+  launch(path: string): boolean;
+  featureHubDataEnable(config: FeatureHubConfiguration): boolean;
+  featureHubFaceSearchThresholdSetting(threshold: number): boolean;
   createSession(
     parameter: SessionCustomParameter,
     detectMode: DetectMode,
@@ -130,6 +119,12 @@ export interface NitroInspireFace
     detectPixelLevel: number,
     trackByDetectModeFPS: number
   ): NitroSession;
+  createImageBitmapFromBuffer(
+    buffer: ArrayBuffer,
+    width: number,
+    height: number,
+    channels: number
+  ): ImageBitmap;
   createImageBitmapFromFilePath(
     channels: number,
     filePath: string
@@ -138,7 +133,7 @@ export interface NitroInspireFace
     bitmap: ImageBitmap,
     rotation: CameraRotation
   ): NitroImageStream;
-  getFaceDenseLandmarkFromFaceToken(token: FaceBasicToken): Point2f[];
+  getFaceDenseLandmarkFromFaceToken(token: ArrayBuffer): Point2f[];
   featureHubFaceInsert(feature: FaceFeatureIdentity): number;
   featureHubFaceUpdate(feature: FaceFeatureIdentity): boolean;
   featureHubFaceRemove(id: number): boolean;
@@ -160,14 +155,14 @@ export interface NitroSession
   setTrackPreviewSize(size: number): void;
   setFaceDetectThreshold(threshold: number): void;
   setFilterMinimumFacePixelSize(size: number): void;
-  executeFaceTrack(imageStream: NitroImageStream): MultipleFaceData;
+  executeFaceTrack(imageStream: NitroImageStream): FaceData[];
   extractFaceFeature(
     imageStream: NitroImageStream,
-    faceToken: FaceBasicToken
+    faceToken: ArrayBuffer
   ): FaceFeature;
   multipleFacePipelineProcess(
     imageStream: NitroImageStream,
-    multipleFaceData: MultipleFaceData,
+    multipleFaceData: FaceData[],
     parameter: SessionCustomParameter
   ): boolean;
   getRGBLivenessConfidence(): number[];

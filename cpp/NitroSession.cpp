@@ -6,9 +6,7 @@
 #include <NitroModules/NitroLogger.hpp>
 #include "FaceRect.hpp"
 #include "FaceEulerAngle.hpp"
-#include "FaceBasicToken.hpp"
-#include "FaceFeature.hpp"
-#include "MultipleFaceData.hpp"
+#include "FaceData.hpp"
 #include "FaceInteractionState.hpp"
 #include "FaceInteractionsAction.hpp"
 #include "FaceAttributeResult.hpp"
@@ -60,7 +58,7 @@ namespace margelo::nitro::nitroinspireface
     }
   }
 
-  MultipleFaceData NitroSession::executeFaceTrack(const std::shared_ptr<HybridNitroImageStreamSpec> &imageStream)
+  std::vector<FaceData> NitroSession::executeFaceTrack(const std::shared_ptr<HybridNitroImageStreamSpec> &imageStream)
   {
     if (_session == nullptr)
     {
@@ -96,50 +94,60 @@ namespace margelo::nitro::nitroinspireface
       throw std::runtime_error("Failed to execute face track with error code: " + std::to_string(result));
     }
 
-    // Convert results to a MultipleFaceData object
-    std::vector<FaceRect> rects;
-    std::vector<double> trackIds;
-    std::vector<double> detConfidence;
-    std::vector<FaceBasicToken> tokens;
+    // Convert results to vector of FaceData objects
+    std::vector<FaceData> faceDataVector;
 
     // Only process faces if there were detections
     if (results.detectedNum > 0)
     {
-      // Process face rectangles
-      if (results.rects != nullptr)
+      faceDataVector.reserve(results.detectedNum);
+
+      for (int i = 0; i < results.detectedNum; i++)
       {
-        for (int i = 0; i < results.detectedNum; i++)
+        // Process face rectangles
+        FaceRect rect(0, 0, 0, 0);
+        if (results.rects != nullptr)
         {
-          rects.push_back(FaceRect(
+          rect = FaceRect(
               static_cast<double>(results.rects[i].x),
               static_cast<double>(results.rects[i].y),
               static_cast<double>(results.rects[i].width),
-              static_cast<double>(results.rects[i].height)));
+              static_cast<double>(results.rects[i].height));
         }
-      }
 
-      // Process track IDs
-      if (results.trackIds != nullptr)
-      {
-        for (int i = 0; i < results.detectedNum; i++)
+        // Process track IDs
+        double trackId = 0;
+        if (results.trackIds != nullptr)
         {
-          trackIds.push_back(static_cast<double>(results.trackIds[i]));
+          trackId = static_cast<double>(results.trackIds[i]);
         }
-      }
 
-      // Process detection confidence
-      if (results.detConfidence != nullptr)
-      {
-        for (int i = 0; i < results.detectedNum; i++)
+        // Process detection confidence
+        double detConfidence = 0;
+        if (results.detConfidence != nullptr)
         {
-          detConfidence.push_back(static_cast<double>(results.detConfidence[i]));
+          detConfidence = static_cast<double>(results.detConfidence[i]);
         }
-      }
 
-      // Process tokens
-      if (results.tokens != nullptr)
-      {
-        for (int i = 0; i < results.detectedNum; i++)
+        // Process Euler angles
+        double roll = 0.0, yaw = 0.0, pitch = 0.0;
+        if (results.angles.roll != nullptr)
+        {
+          roll = static_cast<double>(results.angles.roll[i]);
+        }
+        if (results.angles.yaw != nullptr)
+        {
+          yaw = static_cast<double>(results.angles.yaw[i]);
+        }
+        if (results.angles.pitch != nullptr)
+        {
+          pitch = static_cast<double>(results.angles.pitch[i]);
+        }
+        FaceEulerAngle angles(roll, yaw, pitch);
+
+        // Process token
+        std::shared_ptr<margelo::nitro::ArrayBuffer> buffer;
+        if (results.tokens != nullptr)
         {
           // Get the token size
           int tokenSize = 0;
@@ -147,9 +155,6 @@ namespace margelo::nitro::nitroinspireface
           {
             tokenSize = static_cast<int>(results.tokens[i].size);
           }
-
-          // Create a shared pointer to an ArrayBuffer
-          std::shared_ptr<margelo::nitro::ArrayBuffer> buffer;
 
           if (tokenSize > 0 && results.tokens[i].data != nullptr)
           {
@@ -171,52 +176,23 @@ namespace margelo::nitro::nitroinspireface
             // Create an empty buffer if no data
             buffer = margelo::nitro::ArrayBuffer::allocate(0);
           }
-
-          // Create a FaceBasicToken
-          if (buffer)
-          {
-            tokens.push_back(FaceBasicToken(
-                static_cast<double>(tokenSize),
-                buffer));
-          }
         }
+        else
+        {
+          buffer = margelo::nitro::ArrayBuffer::allocate(0);
+        }
+
+        // Add the FaceData to the vector
+        faceDataVector.emplace_back(rect, trackId, detConfidence, angles, buffer);
       }
     }
 
-    // Create FaceEulerAngle from results
-    double roll = 0.0, yaw = 0.0, pitch = 0.0;
-
-    // Check if the angle pointers are valid before dereferencing
-    if (results.angles.roll != nullptr)
-    {
-      roll = static_cast<double>(*results.angles.roll);
-    }
-
-    if (results.angles.yaw != nullptr)
-    {
-      yaw = static_cast<double>(*results.angles.yaw);
-    }
-
-    if (results.angles.pitch != nullptr)
-    {
-      pitch = static_cast<double>(*results.angles.pitch);
-    }
-
-    FaceEulerAngle angles(roll, yaw, pitch);
-
-    // Return the MultipleFaceData
-    return MultipleFaceData(
-        static_cast<double>(results.detectedNum),
-        rects,
-        trackIds,
-        detConfidence,
-        angles,
-        tokens);
+    return faceDataVector;
   }
 
-  FaceFeature NitroSession::extractFaceFeature(const std::shared_ptr<HybridNitroImageStreamSpec> &imageStream, const FaceBasicToken &faceToken)
+  std::vector<double> NitroSession::extractFaceFeature(const std::shared_ptr<HybridNitroImageStreamSpec> &imageStream, const std::shared_ptr<ArrayBuffer> &faceToken)
   {
-    if (!imageStream)
+    if (!imageStream || !faceToken)
     {
       throw std::runtime_error("Invalid input parameters");
     }
@@ -228,21 +204,10 @@ namespace margelo::nitro::nitroinspireface
       throw std::runtime_error("Failed to cast to NitroImageStream");
     }
 
-    // Create face token struct and initialize it properly
+    // Create face token struct
     HFFaceBasicToken token = {};
-    token.size = static_cast<HInt32>(faceToken.size);
-
-    // Ensure buffer remains valid
-    auto buffer = faceToken.data;
-    if (!buffer || buffer->size() == 0)
-    {
-      throw std::runtime_error("Invalid face token data");
-    }
-
-    // Create a copy of the data
-    void *tokenData = malloc(buffer->size());
-    memcpy(tokenData, buffer->data(), buffer->size());
-    token.data = tokenData;
+    token.size = static_cast<HInt32>(faceToken->size());
+    token.data = faceToken->data();
 
     // Initialize feature struct with zeros
     HFFaceFeature feature = {};
@@ -261,15 +226,18 @@ namespace margelo::nitro::nitroinspireface
       throw std::runtime_error("Invalid feature data returned");
     }
 
-    // Create ArrayBuffer and copy feature data
-    auto featureBuffer = margelo::nitro::ArrayBuffer::allocate(feature.size * sizeof(float));
-    std::memcpy(featureBuffer->data(), feature.data, feature.size * sizeof(float));
+    // Convert the float array to a vector of doubles
+    std::vector<double> featureVector;
+    featureVector.reserve(feature.size);
+    for (int i = 0; i < feature.size; i++)
+    {
+      featureVector.push_back(static_cast<double>(static_cast<float *>(feature.data)[i]));
+    }
 
-    // Return FaceFeature directly (not a shared_ptr)
-    return FaceFeature(static_cast<double>(feature.size), featureBuffer);
+    return featureVector;
   }
 
-  bool NitroSession::multipleFacePipelineProcess(const std::shared_ptr<HybridNitroImageStreamSpec> &imageStream, const MultipleFaceData &multipleFaceData, const SessionCustomParameter &parameter)
+  bool NitroSession::multipleFacePipelineProcess(const std::shared_ptr<HybridNitroImageStreamSpec> &imageStream, const std::vector<FaceData> &multipleFaceData, const SessionCustomParameter &parameter)
   {
     if (_session == nullptr)
     {
@@ -302,54 +270,49 @@ namespace margelo::nitro::nitroinspireface
     hfParam.enable_interaction_liveness = parameter.enableInteractionLiveness ? 1 : 0;
     hfParam.enable_detect_mode_landmark = parameter.enableDetectModeLandmark ? 1 : 0;
 
-    // Convert MultipleFaceData to HFMultipleFaceData
+    // Convert vector<FaceData> to HFMultipleFaceData
     HFMultipleFaceData hfFaces = {};
     memset(&hfFaces, 0, sizeof(HFMultipleFaceData));
 
     // Set the number of faces
-    hfFaces.detectedNum = static_cast<HInt32>(multipleFaceData.detectedNum);
+    hfFaces.detectedNum = static_cast<HInt32>(multipleFaceData.size());
 
-    // Allocate and copy face rects
-    if (!multipleFaceData.rects.empty())
+    if (hfFaces.detectedNum > 0)
     {
+      // Allocate arrays for face data
       hfFaces.rects = new HFaceRect[hfFaces.detectedNum];
-      for (int i = 0; i < hfFaces.detectedNum; i++)
-      {
-        hfFaces.rects[i].x = static_cast<HInt32>(multipleFaceData.rects[i].x);
-        hfFaces.rects[i].y = static_cast<HInt32>(multipleFaceData.rects[i].y);
-        hfFaces.rects[i].width = static_cast<HInt32>(multipleFaceData.rects[i].width);
-        hfFaces.rects[i].height = static_cast<HInt32>(multipleFaceData.rects[i].height);
-      }
-    }
-
-    // Allocate and copy track IDs
-    if (!multipleFaceData.trackIds.empty())
-    {
       hfFaces.trackIds = new HInt32[hfFaces.detectedNum];
-      for (int i = 0; i < hfFaces.detectedNum; i++)
-      {
-        hfFaces.trackIds[i] = static_cast<HInt32>(multipleFaceData.trackIds[i]);
-      }
-    }
-
-    // Allocate and copy detection confidence
-    if (!multipleFaceData.detConfidence.empty())
-    {
       hfFaces.detConfidence = new HFloat[hfFaces.detectedNum];
-      for (int i = 0; i < hfFaces.detectedNum; i++)
-      {
-        hfFaces.detConfidence[i] = static_cast<HFloat>(multipleFaceData.detConfidence[i]);
-      }
-    }
-
-    // Allocate and copy face tokens
-    if (!multipleFaceData.tokens.empty())
-    {
       hfFaces.tokens = new HFFaceBasicToken[hfFaces.detectedNum];
+
+      // Allocate angle data
+      hfFaces.angles.roll = new HFloat[hfFaces.detectedNum];
+      hfFaces.angles.yaw = new HFloat[hfFaces.detectedNum];
+      hfFaces.angles.pitch = new HFloat[hfFaces.detectedNum];
+
+      // Copy data from FaceData vector to HFMultipleFaceData
       for (int i = 0; i < hfFaces.detectedNum; i++)
       {
-        hfFaces.tokens[i].size = static_cast<HInt32>(multipleFaceData.tokens[i].size);
-        hfFaces.tokens[i].data = multipleFaceData.tokens[i].data->data();
+        // Copy rect
+        hfFaces.rects[i].x = static_cast<HInt32>(multipleFaceData[i].rect.x);
+        hfFaces.rects[i].y = static_cast<HInt32>(multipleFaceData[i].rect.y);
+        hfFaces.rects[i].width = static_cast<HInt32>(multipleFaceData[i].rect.width);
+        hfFaces.rects[i].height = static_cast<HInt32>(multipleFaceData[i].rect.height);
+
+        // Copy track ID
+        hfFaces.trackIds[i] = static_cast<HInt32>(multipleFaceData[i].trackId);
+
+        // Copy detection confidence
+        hfFaces.detConfidence[i] = static_cast<HFloat>(multipleFaceData[i].detConfidence);
+
+        // Copy angles
+        hfFaces.angles.roll[i] = static_cast<HFloat>(multipleFaceData[i].angle.roll);
+        hfFaces.angles.yaw[i] = static_cast<HFloat>(multipleFaceData[i].angle.yaw);
+        hfFaces.angles.pitch[i] = static_cast<HFloat>(multipleFaceData[i].angle.pitch);
+
+        // Copy token
+        hfFaces.tokens[i].size = static_cast<HInt32>(multipleFaceData[i].token->size());
+        hfFaces.tokens[i].data = multipleFaceData[i].token->data();
       }
     }
 
@@ -365,6 +328,12 @@ namespace margelo::nitro::nitroinspireface
       delete[] hfFaces.detConfidence;
     if (hfFaces.tokens)
       delete[] hfFaces.tokens;
+    if (hfFaces.angles.roll)
+      delete[] hfFaces.angles.roll;
+    if (hfFaces.angles.yaw)
+      delete[] hfFaces.angles.yaw;
+    if (hfFaces.angles.pitch)
+      delete[] hfFaces.angles.pitch;
 
     if (result != HSUCCEED)
     {

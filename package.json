@@ -167,13 +167,6 @@
     "output": "lib",
     "targets": [
       [
-        "custom",
-        {
-          "script": "nitrogen",
-          "clean": "nitrogen/"
-        }
-      ],
-      [
         "commonjs",
         {
           "esm": true
