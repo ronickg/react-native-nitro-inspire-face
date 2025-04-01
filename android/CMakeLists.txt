@@ -6,7 +6,7 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_STANDARD 20)
 
 # Define C++ library and add all sources
-add_library(${PACKAGE_NAME} SHARED src/main/cpp/cpp-adapter.cpp ../cpp/NitroInspireFace.cpp ../cpp/NitroSession.cpp ../cpp/NitroImageStream.cpp)
+add_library(${PACKAGE_NAME} SHARED src/main/cpp/cpp-adapter.cpp ../cpp/NitroInspireFace.cpp ../cpp/NitroSession.cpp ../cpp/NitroImageStream.cpp ../cpp/NitroImageBitmap.cpp)
 
 add_library(inspireface SHARED IMPORTED)
 set_target_properties(inspireface

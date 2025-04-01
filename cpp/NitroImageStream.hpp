@@ -12,16 +12,20 @@ namespace margelo::nitro::nitroinspireface
   {
   public:
     // Default constructor required for autolink
-    NitroImageStream() : HybridObject(TAG), _stream(nullptr) {}
+    NitroImageStream();
 
     // Constructor with stream
-    NitroImageStream(HFImageStream stream) : HybridObject(TAG), _stream(stream) {}
+    NitroImageStream(HFImageStream stream);
 
     // Destructor
     ~NitroImageStream() override;
 
+    // Override dispose to clean up resources
+    void dispose() override;
+
   private:
-    static constexpr auto TAG = "NitroImageStream";
+    // Private cleanup method used by both dispose and destructor
+    void cleanup();
 
   public:
     // Methods

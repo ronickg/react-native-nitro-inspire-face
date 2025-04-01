@@ -16,6 +16,29 @@
 
 namespace margelo::nitro::nitroinspireface
 {
+  NitroSession::NitroSession() : HybridObject(TAG), _session(nullptr) {}
+
+  NitroSession::NitroSession(HFSession session) : HybridObject(TAG), _session(session) {}
+
+  void NitroSession::cleanup()
+  {
+    if (_session != nullptr)
+    {
+      HFReleaseInspireFaceSession(_session);
+      _session = nullptr;
+    }
+  }
+
+  NitroSession::~NitroSession()
+  {
+    cleanup();
+  }
+
+  void NitroSession::dispose()
+  {
+    cleanup();
+  }
+
   void NitroSession::setTrackPreviewSize(double size)
   {
     if (_session == nullptr)
@@ -60,129 +83,78 @@ namespace margelo::nitro::nitroinspireface
 
   std::vector<FaceData> NitroSession::executeFaceTrack(const std::shared_ptr<HybridNitroImageStreamSpec> &imageStream)
   {
-    if (_session == nullptr)
+    if (!_session)
     {
-      throw std::runtime_error("Session is not initialized");
+      throw std::runtime_error("Session is null");
     }
-
     if (!imageStream)
     {
       throw std::runtime_error("Image stream is null");
     }
 
-    // Create a struct to store the results
-    HFMultipleFaceData results = {};
-    memset(&results, 0, sizeof(HFMultipleFaceData));
-
-    // Get the native image stream handle - we need to cast to the correct derived class
     auto nitroImageStream = std::dynamic_pointer_cast<NitroImageStream>(imageStream);
     if (!nitroImageStream)
     {
-      throw std::runtime_error("Failed to cast to NitroImageStream");
+      throw std::runtime_error("Invalid image stream type");
     }
 
-    HFImageStream streamHandle = nitroImageStream->getNativeHandle();
-    if (!streamHandle)
+    HFImageStream nativeStream = nitroImageStream->getNativeHandle();
+
+    HFMultipleFaceData results{};
+    HResult status = HFExecuteFaceTrack(_session, nativeStream, &results);
+    if (status != HSUCCEED)
     {
-      throw std::runtime_error("Native image stream handle is null");
+      throw std::runtime_error("Face track failed with code: " + std::to_string(status));
     }
 
-    // Execute face tracking
-    HResult result = HFExecuteFaceTrack(_session, streamHandle, &results);
-    if (result != HSUCCEED)
-    {
-      throw std::runtime_error("Failed to execute face track with error code: " + std::to_string(result));
-    }
+    Logger::log(LogLevel::Info, TAG, "Face track results: %d", results.detectedNum);
 
-    // Convert results to vector of FaceData objects
+    // Process results into a vector
     std::vector<FaceData> faceDataVector;
-
-    // Only process faces if there were detections
     if (results.detectedNum > 0)
     {
       faceDataVector.reserve(results.detectedNum);
 
-      for (int i = 0; i < results.detectedNum; i++)
+      for (int i = 0; i < results.detectedNum; ++i)
       {
-        // Process face rectangles
-        FaceRect rect(0, 0, 0, 0);
-        if (results.rects != nullptr)
-        {
-          rect = FaceRect(
-              static_cast<double>(results.rects[i].x),
-              static_cast<double>(results.rects[i].y),
-              static_cast<double>(results.rects[i].width),
-              static_cast<double>(results.rects[i].height));
-        }
+        // Construct FaceRect
+        FaceRect rect(
+            static_cast<double>(results.rects[i].x),
+            static_cast<double>(results.rects[i].y),
+            static_cast<double>(results.rects[i].width),
+            static_cast<double>(results.rects[i].height));
 
-        // Process track IDs
-        double trackId = 0;
-        if (results.trackIds != nullptr)
-        {
-          trackId = static_cast<double>(results.trackIds[i]);
-        }
+        // Extract track ID and confidence
+        double trackId = static_cast<double>(results.trackIds[i]);
+        double detConfidence = static_cast<double>(results.detConfidence[i]);
 
-        // Process detection confidence
-        double detConfidence = 0;
-        if (results.detConfidence != nullptr)
-        {
-          detConfidence = static_cast<double>(results.detConfidence[i]);
-        }
+        // Construct FaceEulerAngle
+        FaceEulerAngle angles(
+            static_cast<double>(results.angles.roll[i]),
+            static_cast<double>(results.angles.yaw[i]),
+            static_cast<double>(results.angles.pitch[i]));
 
-        // Process Euler angles
-        double roll = 0.0, yaw = 0.0, pitch = 0.0;
-        if (results.angles.roll != nullptr)
-        {
-          roll = static_cast<double>(results.angles.roll[i]);
-        }
-        if (results.angles.yaw != nullptr)
-        {
-          yaw = static_cast<double>(results.angles.yaw[i]);
-        }
-        if (results.angles.pitch != nullptr)
-        {
-          pitch = static_cast<double>(results.angles.pitch[i]);
-        }
-        FaceEulerAngle angles(roll, yaw, pitch);
-
-        // Process token
+        // Handle token data
         std::shared_ptr<margelo::nitro::ArrayBuffer> buffer;
-        if (results.tokens != nullptr)
+        if (results.tokens[i].size > 0 && results.tokens[i].data != nullptr)
         {
-          // Get the token size
-          int tokenSize = 0;
-          if (results.tokens[i].size > 0)
+          try
           {
-            tokenSize = static_cast<int>(results.tokens[i].size);
+            buffer = margelo::nitro::ArrayBuffer::copy(
+                static_cast<uint8_t *>(results.tokens[i].data),
+                results.tokens[i].size);
           }
-
-          if (tokenSize > 0 && results.tokens[i].data != nullptr)
+          catch (const std::bad_alloc &e)
           {
-            try
-            {
-              // Create a new ArrayBuffer with the token data
-              buffer = margelo::nitro::ArrayBuffer::copy(
-                  static_cast<uint8_t *>(results.tokens[i].data),
-                  tokenSize);
-            }
-            catch (const std::exception &e)
-            {
-              // If copying fails, fall back to an empty buffer
-              buffer = margelo::nitro::ArrayBuffer::allocate(0);
-            }
-          }
-          else
-          {
-            // Create an empty buffer if no data
-            buffer = margelo::nitro::ArrayBuffer::allocate(0);
+            buffer = margelo::nitro::ArrayBuffer::allocate(0); // Fallback to empty buffer
           }
         }
         else
         {
-          buffer = margelo::nitro::ArrayBuffer::allocate(0);
+          buffer = margelo::nitro::ArrayBuffer::allocate(0); // Empty buffer if no valid token
         }
 
-        // Add the FaceData to the vector
+        // Add FaceData to vector
         faceDataVector.emplace_back(rect, trackId, detConfidence, angles, buffer);
       }
     }

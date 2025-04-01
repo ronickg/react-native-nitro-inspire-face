@@ -99,7 +99,7 @@ namespace margelo::nitro::nitroinspireface
     return std::make_shared<NitroSession>(session);
   }
 
-  ImageBitmap NitroInspireFace::createImageBitmapFromFilePath(double channels, const std::string &filePath)
+  std::shared_ptr<HybridNitroImageBitmapSpec> NitroInspireFace::createImageBitmapFromFilePath(double channels, const std::string &filePath)
   {
     HFImageBitmap bitmap = nullptr;
     HResult result = HFCreateImageBitmapFromFilePath(filePath.c_str(), static_cast<HInt32>(channels), &bitmap);
@@ -108,33 +108,13 @@ namespace margelo::nitro::nitroinspireface
       throw std::runtime_error("Failed to create image bitmap from file with error code: " + std::to_string(result));
     }
 
-    // Get bitmap info
-    HFImageBitmapData bitmapData;
-    result = HFImageBitmapGetData(bitmap, &bitmapData);
-    if (result != HSUCCEED)
-    {
-      HFReleaseImageBitmap(bitmap);
-      throw std::runtime_error("Failed to get bitmap data with error code: " + std::to_string(result));
-    }
-
-    // Copy data to our own buffer
-    size_t dataSize = bitmapData.width * bitmapData.height * bitmapData.channels;
-    auto buffer = ArrayBuffer::copy(bitmapData.data, dataSize);
-
-    // Clean up HF bitmap
-    HFReleaseImageBitmap(bitmap);
-
-    return ImageBitmap(
-        static_cast<double>(bitmapData.width),
-        static_cast<double>(bitmapData.height),
-        static_cast<double>(bitmapData.channels),
-        buffer);
+    return std::make_shared<NitroImageBitmap>(bitmap);
   }
 
-  ImageBitmap NitroInspireFace::createImageBitmapFromBuffer(const std::shared_ptr<ArrayBuffer> &buffer, double width, double height, double channels)
+  std::shared_ptr<HybridNitroImageBitmapSpec> NitroInspireFace::createImageBitmapFromBuffer(const std::shared_ptr<ArrayBuffer> &buffer, double width, double height, double channels)
   {
     // Create bitmap data structure
-    HFImageBitmapData bitmapData;
+    HFImageBitmapData bitmapData{};
     bitmapData.data = reinterpret_cast<uint8_t *>(buffer->data());
     bitmapData.width = static_cast<HInt32>(width);
     bitmapData.height = static_cast<HInt32>(height);
@@ -148,61 +128,28 @@ namespace margelo::nitro::nitroinspireface
       throw std::runtime_error("Failed to create image bitmap from buffer with error code: " + std::to_string(result));
     }
 
-    // Get bitmap info to return as ImageBitmap
-    result = HFImageBitmapGetData(bitmap, &bitmapData);
-    if (result != HSUCCEED)
-    {
-      HFReleaseImageBitmap(bitmap);
-      throw std::runtime_error("Failed to get bitmap data with error code: " + std::to_string(result));
-    }
-
-    // Copy data to our own buffer
-    size_t dataSize = bitmapData.width * bitmapData.height * bitmapData.channels;
-    auto newBuffer = ArrayBuffer::copy(bitmapData.data, dataSize);
-
-    // Clean up HF bitmap
-    HFReleaseImageBitmap(bitmap);
-
-    return ImageBitmap(
-        static_cast<double>(bitmapData.width),
-        static_cast<double>(bitmapData.height),
-        static_cast<double>(bitmapData.channels),
-        newBuffer);
+    return std::make_shared<NitroImageBitmap>(bitmap);
   }
 
-  std::shared_ptr<HybridNitroImageStreamSpec> NitroInspireFace::createImageStreamFromBitmap(const ImageBitmap &bitmap, CameraRotation rotation)
+  std::shared_ptr<HybridNitroImageStreamSpec> NitroInspireFace::createImageStreamFromBitmap(const std::shared_ptr<HybridNitroImageBitmapSpec> &bitmap, CameraRotation rotation)
   {
-    // Get raw data from ArrayBuffer and ensure it stays alive
-    auto buffer = bitmap.data;
-    auto rawData = reinterpret_cast<uint8_t *>(buffer->data());
-    if (!rawData)
+    if (!bitmap)
     {
-      throw std::runtime_error("Failed to get data from ArrayBuffer");
+      throw std::runtime_error("Invalid bitmap");
     }
 
-    // Create HFImageBitmap from raw data
-    HFImageBitmapData bitmapData;
-    bitmapData.data = rawData;
-    bitmapData.width = static_cast<HInt32>(bitmap.width);
-    bitmapData.height = static_cast<HInt32>(bitmap.height);
-    bitmapData.channels = static_cast<HInt32>(bitmap.channels);
-
-    HFImageBitmap hfBitmap = nullptr;
-    HResult result = HFCreateImageBitmap(&bitmapData, &hfBitmap);
-    if (result != HSUCCEED || hfBitmap == nullptr)
+    auto nitroBitmap = std::dynamic_pointer_cast<NitroImageBitmap>(bitmap);
+    if (!nitroBitmap)
     {
-      throw std::runtime_error("Failed to create HFImageBitmap with error code: " + std::to_string(result));
+      throw std::runtime_error("Failed to cast to NitroImageBitmap");
     }
 
     // Create stream from bitmap
     HFImageStream stream = nullptr;
-    result = HFCreateImageStreamFromImageBitmap(
-        hfBitmap,
+    HResult result = HFCreateImageStreamFromImageBitmap(
+        nitroBitmap->getNativeHandle(),
         static_cast<HFRotation>(rotation),
         &stream);
-
-    // Clean up bitmap
-    HFReleaseImageBitmap(hfBitmap);
 
     if (result != HSUCCEED || stream == nullptr)
     {

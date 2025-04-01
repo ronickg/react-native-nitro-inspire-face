@@ -5,7 +5,7 @@
 #include "SessionCustomParameter.hpp"
 #include "DetectMode.hpp"
 #include "CameraRotation.hpp"
-#include "ImageBitmap.hpp"
+#include "NitroImageBitmap.hpp"
 #include "SearchMode.hpp"
 #include "PrimaryKeyMode.hpp"
 #include "NitroSession.hpp"
@@ -33,8 +33,6 @@ namespace margelo::nitro::nitroinspireface
     ~NitroInspireFace() override = default;
 
   private:
-    static constexpr auto TAG = "NitroInspireFace";
-
   public:
     std::string getVersion() override;
     bool launch(const std::string &path) override;
@@ -46,9 +44,9 @@ namespace margelo::nitro::nitroinspireface
         double maxDetectFaceNum,
         double detectPixelLevel,
         double trackByDetectModeFPS) override;
-    ImageBitmap createImageBitmapFromFilePath(double channels, const std::string &filePath) override;
-    ImageBitmap createImageBitmapFromBuffer(const std::shared_ptr<ArrayBuffer> &buffer, double width, double height, double channels) override;
-    std::shared_ptr<HybridNitroImageStreamSpec> createImageStreamFromBitmap(const ImageBitmap &bitmap, CameraRotation rotation) override;
+    std::shared_ptr<HybridNitroImageBitmapSpec> createImageBitmapFromFilePath(double channels, const std::string &filePath) override;
+    std::shared_ptr<HybridNitroImageBitmapSpec> createImageBitmapFromBuffer(const std::shared_ptr<ArrayBuffer> &buffer, double width, double height, double channels) override;
+    std::shared_ptr<HybridNitroImageStreamSpec> createImageStreamFromBitmap(const std::shared_ptr<HybridNitroImageBitmapSpec> &bitmap, CameraRotation rotation) override;
     std::vector<Point2f> getFaceDenseLandmarkFromFaceToken(const std::shared_ptr<ArrayBuffer> &token) override;
     double featureHubFaceInsert(const FaceFeatureIdentity &feature) override;
     bool featureHubFaceUpdate(const FaceFeatureIdentity &feature) override;

@@ -42,12 +42,13 @@ export type FeatureHubConfiguration = {
   primaryKeyMode: PrimaryKeyMode;
 };
 
-export type ImageBitmap = {
+export interface NitroImageBitmap
+  extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
   readonly width: number;
   readonly height: number;
   readonly channels: number;
   readonly data: ArrayBuffer;
-};
+}
 
 export type FaceRect = {
   x: number;
@@ -124,13 +125,13 @@ export interface NitroInspireFace
     width: number,
     height: number,
     channels: number
-  ): ImageBitmap;
+  ): NitroImageBitmap;
   createImageBitmapFromFilePath(
     channels: number,
     filePath: string
-  ): ImageBitmap;
+  ): NitroImageBitmap;
   createImageStreamFromBitmap(
-    bitmap: ImageBitmap,
+    bitmap: NitroImageBitmap,
     rotation: CameraRotation
   ): NitroImageStream;
   getFaceDenseLandmarkFromFaceToken(token: ArrayBuffer): Point2f[];

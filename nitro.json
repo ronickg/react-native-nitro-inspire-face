@@ -16,6 +16,9 @@
     },
     "NitroImageStream": {
       "cpp": "NitroImageStream"
+    },
+    "NitroImageBitmap": {
+      "cpp": "NitroImageBitmap"
     }
   },
   "ignorePaths": ["node_modules"]

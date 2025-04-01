@@ -20,23 +20,20 @@ namespace margelo::nitro::nitroinspireface
   {
   public:
     // Default constructor required for autolink
-    NitroSession() : HybridObject(TAG), _session(nullptr) {}
+    NitroSession();
 
     // Constructor with session
-    NitroSession(HFSession session) : HybridObject(TAG), _session(session) {}
+    NitroSession(HFSession session);
 
     // Destructor
-    ~NitroSession() override
-    {
-      if (_session != nullptr)
-      {
-        HFReleaseInspireFaceSession(_session);
-        _session = nullptr;
-      }
-    }
+    ~NitroSession() override;
+
+    // Override dispose to clean up resources
+    void dispose() override;
 
   private:
-    static constexpr auto TAG = "NitroSession";
+    // Private cleanup method used by both dispose and destructor
+    void cleanup();
 
   public:
     // Methods

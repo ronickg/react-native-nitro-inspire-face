@@ -25,25 +25,7 @@ InspireFace.launch(RNFS.DocumentDirectoryPath + '/Pikachu');
 export default function App() {
   useEffect(() => {
     const initFaceDetection = async () => {
-      console.log(RNFS.DocumentDirectoryPath + '/Pikachu');
       try {
-        const fileExists = await RNFS.exists(
-          RNFS.DocumentDirectoryPath + '/Pikachu'
-        );
-        if (!fileExists) {
-          console.log(RNFS.DocumentDirectoryPath + '/Pikachu');
-          console.log('Pikachu does not exist');
-          return;
-        }
-        InspireFace.featureHubDataEnable({
-          enablePersistence: false,
-          persistenceDbPath: `${RNFS.DocumentDirectoryPath}/f.db`,
-          searchThreshold: 0.42,
-          searchMode: SearchMode.EXHAUSTIVE,
-          primaryKeyMode: PrimaryKeyMode.AUTO_INCREMENT,
-        });
-        InspireFace.featureHubFaceSearchThresholdSetting(0.42);
-        InspireFace.launch(RNFS.DocumentDirectoryPath + '/Pikachu');
         const session = InspireFace.createSession(
           {
             enableRecognition: true,
@@ -61,140 +43,147 @@ export default function App() {
         session.setTrackPreviewSize(320);
         session.setFaceDetectThreshold(0.5);
         session.setFilterMinimumFacePixelSize(0);
-        const bitmap = InspireFace.createImageBitmapFromFilePath(
-          3,
-          RNFS.DocumentDirectoryPath + '/kun6.jpg'
-        );
-        console.log('bitmap', new Uint8Array(bitmap.data).length);
-        const imageStream = InspireFace.createImageStreamFromBitmap(
-          bitmap,
-          CameraRotation.ROTATION_0
-        );
-        imageStream.writeImageToFile(RNFS.DocumentDirectoryPath + '/kun1.jpg');
-        const multipleFaceData = session.executeFaceTrack(imageStream);
-        console.log('multipleFaceData', multipleFaceData.length);
-        if (multipleFaceData.length > 0 && multipleFaceData[0]) {
-          const lmk = InspireFace.getFaceDenseLandmarkFromFaceToken(
-            multipleFaceData[0].token
+
+        for (let j = 0; j < 10; j++) {
+          const bitmap = InspireFace.createImageBitmapFromFilePath(
+            3,
+            RNFS.DocumentDirectoryPath + '/kun6.jpg'
           );
-          console.log('lmk', lmk.length);
-          const feature = session.extractFaceFeature(
-            imageStream,
-            multipleFaceData[0].token
+          const imageStream = InspireFace.createImageStreamFromBitmap(
+            bitmap,
+            CameraRotation.ROTATION_0
           );
-          for (let i = 0; i < 10; i++) {
-            const result = InspireFace.featureHubFaceInsert({
-              id: -1,
+          // imageStream.writeImageToFile(
+          //   RNFS.DocumentDirectoryPath + '/kun1.jpg'
+          // );
+          const multipleFaceData = session.executeFaceTrack(imageStream);
+          //Works till here -----
+          console.log('multipleFaceData', multipleFaceData.length);
+          if (multipleFaceData.length > 0 && multipleFaceData[0]) {
+            const lmk = InspireFace.getFaceDenseLandmarkFromFaceToken(
+              multipleFaceData[0].token
+            );
+            console.log('lmk', lmk.length);
+            const feature = session.extractFaceFeature(
+              imageStream,
+              multipleFaceData[0].token
+            );
+            for (let i = 0; i < 10; i++) {
+              const result = InspireFace.featureHubFaceInsert({
+                id: -1,
+                feature,
+              });
+              console.log('result', result);
+            }
+            console.log('Feature size: ', feature.length);
+            const searched = InspireFace.featureHubFaceSearch(feature);
+            if (searched) {
+              console.log(
+                'searched',
+                searched.id,
+                'confidence',
+                searched.confidence
+              );
+            }
+            const topKResults = InspireFace.featureHubFaceSearchTopK(
               feature,
+              10
+            );
+            console.log('topKResults', topKResults.length);
+            topKResults.forEach((result) => {
+              console.log(
+                'TopK id: ',
+                result.id,
+                'Confidence: ',
+                result.confidence
+              );
             });
-            console.log('result', result);
-          }
-          console.log('Feature size: ', feature.length);
-          const searched = InspireFace.featureHubFaceSearch(feature);
-          if (searched) {
-            console.log(
-              'searched',
-              searched.id,
-              'confidence',
-              searched.confidence
-            );
-          }
-          const topKResults = InspireFace.featureHubFaceSearchTopK(feature, 10);
-          console.log('topKResults', topKResults.length);
-          topKResults.forEach((result) => {
-            console.log(
-              'TopK id: ',
-              result.id,
-              'Confidence: ',
-              result.confidence
-            );
-          });
-          const newFeature: FaceFeature = new Array(
-            InspireFace.getFeatureLength()
-          ).fill(0);
+            const newFeature: FaceFeature = new Array(
+              InspireFace.getFeatureLength()
+            ).fill(0);
 
-          const identity: FaceFeatureIdentity = {
-            id: 8,
-            feature: newFeature,
-          };
-          const updateSuccess = InspireFace.featureHubFaceUpdate(identity);
-          if (updateSuccess) {
-            console.log('Update feature success: ' + 8);
-          } else {
-            console.log('Update feature failed: ' + 8);
-          }
-          const removeSuccess = InspireFace.featureHubFaceRemove(4);
-          if (removeSuccess) {
-            console.log('Remove feature success: ' + 4);
-          } else {
-            console.log('Remove feature failed: ' + 4);
-          }
-          const topkAgn = InspireFace.featureHubFaceSearchTopK(feature, 10);
-          topkAgn.forEach((result) => {
-            console.log(
-              'Agn TopK id:',
-              result.id,
-              'Confidence: ',
-              result.confidence
+            const identity: FaceFeatureIdentity = {
+              id: 8,
+              feature: newFeature,
+            };
+            const updateSuccess = InspireFace.featureHubFaceUpdate(identity);
+            if (updateSuccess) {
+              console.log('Update feature success: ' + 8);
+            } else {
+              console.log('Update feature failed: ' + 8);
+            }
+            const removeSuccess = InspireFace.featureHubFaceRemove(4);
+            if (removeSuccess) {
+              console.log('Remove feature success: ' + 4);
+            } else {
+              console.log('Remove feature failed: ' + 4);
+            }
+            const topkAgn = InspireFace.featureHubFaceSearchTopK(feature, 10);
+            topkAgn.forEach((result) => {
+              console.log(
+                'Agn TopK id:',
+                result.id,
+                'Confidence: ',
+                result.confidence
+              );
+            });
+            const start = performance.now();
+            let queryIdentity = InspireFace.featureHubGetFaceIdentity(4);
+            if (queryIdentity) {
+              console.log('Query identity: ', queryIdentity.id);
+            } else {
+              console.log('Query identity failed');
+            }
+            queryIdentity = InspireFace.featureHubGetFaceIdentity(2);
+            if (queryIdentity) {
+              console.log('strFt', queryIdentity.feature.length);
+              console.log('query id: ', queryIdentity.id);
+              const comp = InspireFace.faceComparison(
+                queryIdentity.feature,
+                feature
+              );
+              console.log('comp', comp);
+            } else {
+              console.log('Query identity failed');
+            }
+            const pipelineNeedParam: SessionCustomParameter = {
+              enableFaceQuality: true,
+              enableLiveness: true,
+              enableMaskDetect: true,
+              enableFaceAttribute: true,
+              enableInteractionLiveness: true,
+            };
+            const succPipe = session.multipleFacePipelineProcess(
+              imageStream,
+              multipleFaceData,
+              pipelineNeedParam
             );
-          });
-          const start = performance.now();
-          let queryIdentity = InspireFace.featureHubGetFaceIdentity(4);
-          if (queryIdentity) {
-            console.log('Query identity: ', queryIdentity.id);
-          } else {
-            console.log('Query identity failed');
+            if (succPipe) {
+              console.log('pipeline success');
+              const rgbLivenessConfidence = session.getRGBLivenessConfidence();
+              console.log('rgbLivenessConfidence', rgbLivenessConfidence);
+              const faceQualityConfidence = session.getFaceQualityConfidence();
+              console.log('faceQualityConfidence', faceQualityConfidence);
+              const faceMaskConfidence = session.getFaceMaskConfidence();
+              console.log('faceMaskConfidence', faceMaskConfidence);
+              const faceInteractionState = session.getFaceInteractionState();
+              console.log('faceInteractionState', faceInteractionState);
+              const faceInteractionActionsResult =
+                session.getFaceInteractionActionsResult();
+              console.log(
+                'faceInteractionActionsResult',
+                faceInteractionActionsResult
+              );
+              const faceAttributeResult = session.getFaceAttributeResult();
+              console.log('faceAttributeResult', faceAttributeResult);
+            }
+            const end = performance.now();
+            console.log(`Time taken: ${end - start} milliseconds`);
           }
-          queryIdentity = InspireFace.featureHubGetFaceIdentity(2);
-          if (queryIdentity) {
-            console.log('strFt', queryIdentity.feature.length);
-            console.log('query id: ', queryIdentity.id);
-            const comp = InspireFace.faceComparison(
-              queryIdentity.feature,
-              feature
-            );
-            console.log('comp', comp);
-          } else {
-            console.log('Query identity failed');
-          }
-          const pipelineNeedParam: SessionCustomParameter = {
-            enableFaceQuality: true,
-            enableLiveness: true,
-            enableMaskDetect: true,
-            enableFaceAttribute: true,
-            enableInteractionLiveness: true,
-          };
-          const succPipe = session.multipleFacePipelineProcess(
-            imageStream,
-            multipleFaceData,
-            pipelineNeedParam
-          );
-          if (succPipe) {
-            console.log('pipeline success');
-            const rgbLivenessConfidence = session.getRGBLivenessConfidence();
-            console.log('rgbLivenessConfidence', rgbLivenessConfidence);
-            const faceQualityConfidence = session.getFaceQualityConfidence();
-            console.log('faceQualityConfidence', faceQualityConfidence);
-            const faceMaskConfidence = session.getFaceMaskConfidence();
-            console.log('faceMaskConfidence', faceMaskConfidence);
-            const faceInteractionState = session.getFaceInteractionState();
-            console.log('faceInteractionState', faceInteractionState);
-            const faceInteractionActionsResult =
-              session.getFaceInteractionActionsResult();
-            console.log(
-              'faceInteractionActionsResult',
-              faceInteractionActionsResult
-            );
-            const faceAttributeResult = session.getFaceAttributeResult();
-            console.log('faceAttributeResult', faceAttributeResult);
-          }
-          const end = performance.now();
-          console.log(`Time taken: ${end - start} milliseconds`);
-
-          //Close the image stream and session
           imageStream.dispose();
-          session.dispose();
+          bitmap.dispose();
         }
+        session.dispose();
       } catch (err) {
         console.log('err', err);
       }
@@ -214,3 +203,115 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 });
+
+// for (let i = 0; i < 10; i++) {
+//   const result = InspireFace.featureHubFaceInsert({
+//     id: -1,
+//     feature,
+//   });
+//   console.log('result', result);
+// }
+// console.log('Feature size: ', feature.length);
+// const searched = InspireFace.featureHubFaceSearch(feature);
+// if (searched) {
+//   console.log(
+//     'searched',
+//     searched.id,
+//     'confidence',
+//     searched.confidence
+//   );
+// }
+// const topKResults = InspireFace.featureHubFaceSearchTopK(
+//   feature,
+//   10
+// );
+// console.log('topKResults', topKResults.length);
+// topKResults.forEach((result) => {
+//   console.log(
+//     'TopK id: ',
+//     result.id,
+//     'Confidence: ',
+//     result.confidence
+//   );
+// });
+// const newFeature: FaceFeature = new Array(
+//   InspireFace.getFeatureLength()
+// ).fill(0);
+
+// const identity: FaceFeatureIdentity = {
+//   id: 8,
+//   feature: newFeature,
+// };
+// const updateSuccess = InspireFace.featureHubFaceUpdate(identity);
+// if (updateSuccess) {
+//   console.log('Update feature success: ' + 8);
+// } else {
+//   console.log('Update feature failed: ' + 8);
+// }
+// const removeSuccess = InspireFace.featureHubFaceRemove(4);
+// if (removeSuccess) {
+//   console.log('Remove feature success: ' + 4);
+// } else {
+//   console.log('Remove feature failed: ' + 4);
+// }
+// const topkAgn = InspireFace.featureHubFaceSearchTopK(feature, 10);
+// topkAgn.forEach((result) => {
+//   console.log(
+//     'Agn TopK id:',
+//     result.id,
+//     'Confidence: ',
+//     result.confidence
+//   );
+// });
+// const start = performance.now();
+// let queryIdentity = InspireFace.featureHubGetFaceIdentity(4);
+// if (queryIdentity) {
+//   console.log('Query identity: ', queryIdentity.id);
+// } else {
+//   console.log('Query identity failed');
+// }
+// queryIdentity = InspireFace.featureHubGetFaceIdentity(2);
+// if (queryIdentity) {
+//   console.log('strFt', queryIdentity.feature.length);
+//   console.log('query id: ', queryIdentity.id);
+//   const comp = InspireFace.faceComparison(
+//     queryIdentity.feature,
+//     feature
+//   );
+//   console.log('comp', comp);
+// } else {
+//   console.log('Query identity failed');
+// }
+// const pipelineNeedParam: SessionCustomParameter = {
+//   enableFaceQuality: true,
+//   enableLiveness: true,
+//   enableMaskDetect: true,
+//   enableFaceAttribute: true,
+//   enableInteractionLiveness: true,
+// };
+// const succPipe = session.multipleFacePipelineProcess(
+//   imageStream,
+//   multipleFaceData,
+//   pipelineNeedParam
+// );
+// if (succPipe) {
+//   console.log('pipeline success');
+//   const rgbLivenessConfidence = session.getRGBLivenessConfidence();
+//   console.log('rgbLivenessConfidence', rgbLivenessConfidence);
+//   const faceQualityConfidence = session.getFaceQualityConfidence();
+//   console.log('faceQualityConfidence', faceQualityConfidence);
+//   const faceMaskConfidence = session.getFaceMaskConfidence();
+//   console.log('faceMaskConfidence', faceMaskConfidence);
+//   const faceInteractionState = session.getFaceInteractionState();
+//   console.log('faceInteractionState', faceInteractionState);
+//   const faceInteractionActionsResult =
+//     session.getFaceInteractionActionsResult();
+//   console.log(
+//     'faceInteractionActionsResult',
+//     faceInteractionActionsResult
+//   );
+//   const faceAttributeResult = session.getFaceAttributeResult();
+//   console.log('faceAttributeResult', faceAttributeResult);
+// }
+// const end = performance.now();
+// console.log(`Time taken: ${end - start} milliseconds`);
