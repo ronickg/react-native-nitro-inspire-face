@@ -28,10 +28,13 @@ namespace margelo::nitro::nitroinspireface
   {
   public:
     // Constructor
-    HybridInspireFace() : HybridObject(TAG) {}
+    HybridInspireFace();
 
     // Destructor
     ~HybridInspireFace() override = default;
+
+  private:
+    std::shared_ptr<HybridAssetManagerSpec> assetManager;
 
   public:
     std::string getVersion() override;

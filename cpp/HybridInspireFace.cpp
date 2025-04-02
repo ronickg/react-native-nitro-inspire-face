@@ -11,6 +11,23 @@
 
 namespace margelo::nitro::nitroinspireface
 {
+  HybridInspireFace::HybridInspireFace() : HybridObject(TAG)
+  {
+    auto utilsObject = HybridObjectRegistry::createHybridObject("AssetManager");
+    if (!utilsObject)
+    {
+      Logger::log(LogLevel::Error, TAG, "AssetManager not found in HybridObjectRegistry!");
+      throw std::runtime_error("Failed to create AssetManager");
+    }
+
+    assetManager = std::dynamic_pointer_cast<HybridAssetManagerSpec>(utilsObject);
+    if (!assetManager)
+    {
+      Logger::log(LogLevel::Error, TAG, "Failed to cast AssetManager to HybridAssetManagerSpec!");
+      throw std::runtime_error("Failed to cast AssetManager");
+    }
+  }
+
   std::string HybridInspireFace::getVersion()
   {
     HFInspireFaceVersion version;
@@ -21,29 +38,14 @@ namespace margelo::nitro::nitroinspireface
 
   bool HybridInspireFace::launch(const std::string &path)
   {
-    // Get utils object and validate
-    auto utilsObject = HybridObjectRegistry::createHybridObject("AssetManager");
-    if (!utilsObject)
-    {
-      Logger::log(LogLevel::Error, TAG, "AssetManager not found in HybridObjectRegistry!");
-      return false;
-    }
-
-    auto utils = std::dynamic_pointer_cast<HybridAssetManagerSpec>(utilsObject);
-    if (!utils)
-    {
-      Logger::log(LogLevel::Error, TAG, "Failed to cast AssetManager to HybridAssetManagerSpec!");
-      return false;
-    }
-
     try
     {
       // Get base directory and construct destination path
-      const std::string baseDirectory = utils->getBaseDirectory();
+      const std::string baseDirectory = assetManager->getBaseDirectory();
       const std::string destPath = baseDirectory + "/" + path;
 
       // Copy asset file
-      if (!utils->copyAssetToFile(path, destPath))
+      if (!assetManager->copyAssetToFile(path, destPath))
       {
         Logger::log(LogLevel::Error, TAG, "Failed to copy asset file to '%s'", destPath.c_str());
         return false;
@@ -69,12 +71,15 @@ namespace margelo::nitro::nitroinspireface
 
   bool HybridInspireFace::featureHubDataEnable(const FeatureHubConfiguration &config)
   {
+    const std::string baseDirectory = assetManager->getBaseDirectory();
+    const std::string destPath = baseDirectory + "/" + config.persistenceDbPath;
+
     HFFeatureHubConfiguration hfConfig;
     hfConfig.searchMode = static_cast<HFSearchMode>(config.searchMode);
     hfConfig.enablePersistence = config.enablePersistence ? 1 : 0;
     // Create a non-const buffer for the path
-    char *pathBuffer = new char[config.persistenceDbPath.length() + 1];
-    std::strcpy(pathBuffer, config.persistenceDbPath.c_str());
+    char *pathBuffer = new char[destPath.length() + 1];
+    std::strcpy(pathBuffer, destPath.c_str());
     hfConfig.persistenceDbPath = pathBuffer;
     hfConfig.searchThreshold = static_cast<float>(config.searchThreshold);
     hfConfig.primaryKeyMode = static_cast<HFPKMode>(config.primaryKeyMode);

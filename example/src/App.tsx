@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import RNFS from 'react-native-fs';
 import {
+  AssetManager,
   CameraRotation,
   DetectMode,
   InspireFace,
@@ -13,14 +14,18 @@ import {
 import { useEffect } from 'react';
 
 InspireFace.featureHubDataEnable({
-  enablePersistence: false,
-  persistenceDbPath: `${RNFS.DocumentDirectoryPath}/f.db`,
+  enablePersistence: true,
+  persistenceDbPath: 'fdb.db',
   searchThreshold: 0.42,
   searchMode: SearchMode.EXHAUSTIVE,
   primaryKeyMode: PrimaryKeyMode.AUTO_INCREMENT,
 });
 InspireFace.featureHubFaceSearchThresholdSetting(0.42);
 InspireFace.launch('Megatron');
+AssetManager.copyAssetToFile(
+  'kun.jpg',
+  `${AssetManager.getBaseDirectory()}/kun.jpg`
+);
 
 export default function App() {
   useEffect(() => {
@@ -47,7 +52,7 @@ export default function App() {
         for (let j = 0; j < 10; j++) {
           const bitmap = InspireFace.createImageBitmapFromFilePath(
             3,
-            RNFS.DocumentDirectoryPath + '/kun6.jpg'
+            RNFS.DocumentDirectoryPath + '/kun.jpg'
           );
           const imageStream = InspireFace.createImageStreamFromBitmap(
             bitmap,
