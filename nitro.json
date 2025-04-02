@@ -8,17 +8,21 @@
     "androidCxxLibName": "nitroinspireface"
   },
   "autolinking": {
-    "NitroInspireFace": {
-      "cpp": "NitroInspireFace"
+    "AssetManager": {
+      "swift": "HybridAssetManager",
+      "kotlin": "HybridAssetManager"
     },
-    "NitroSession": {
-      "cpp": "NitroSession"
+    "InspireFace": {
+      "cpp": "HybridInspireFace"
     },
-    "NitroImageStream": {
-      "cpp": "NitroImageStream"
+    "Session": {
+      "cpp": "HybridSession"
     },
-    "NitroImageBitmap": {
-      "cpp": "NitroImageBitmap"
+    "ImageStream": {
+      "cpp": "HybridImageStream"
+    },
+    "ImageBitmap": {
+      "cpp": "HybridImageBitmap"
     }
   },
   "ignorePaths": ["node_modules"]

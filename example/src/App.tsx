@@ -20,7 +20,7 @@ InspireFace.featureHubDataEnable({
   primaryKeyMode: PrimaryKeyMode.AUTO_INCREMENT,
 });
 InspireFace.featureHubFaceSearchThresholdSetting(0.42);
-InspireFace.launch(RNFS.DocumentDirectoryPath + '/Pikachu');
+InspireFace.launch('Pikachu');
 
 export default function App() {
   useEffect(() => {

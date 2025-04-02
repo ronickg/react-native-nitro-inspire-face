@@ -42,7 +42,7 @@ export type FeatureHubConfiguration = {
   primaryKeyMode: PrimaryKeyMode;
 };
 
-export interface NitroImageBitmap
+export interface ImageBitmap
   extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
   readonly width: number;
   readonly height: number;
@@ -107,7 +107,7 @@ export type FaceAttributeResult = {
   gender: number;
   race: number;
 };
-export interface NitroInspireFace
+export interface InspireFace
   extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
   readonly version: string;
   launch(path: string): boolean;
@@ -119,21 +119,21 @@ export interface NitroInspireFace
     maxDetectFaceNum: number,
     detectPixelLevel: number,
     trackByDetectModeFPS: number
-  ): NitroSession;
+  ): Session;
   createImageBitmapFromBuffer(
     buffer: ArrayBuffer,
     width: number,
     height: number,
     channels: number
-  ): NitroImageBitmap;
+  ): ImageBitmap;
   createImageBitmapFromFilePath(
     channels: number,
     filePath: string
-  ): NitroImageBitmap;
+  ): ImageBitmap;
   createImageStreamFromBitmap(
-    bitmap: NitroImageBitmap,
+    bitmap: ImageBitmap,
     rotation: CameraRotation
-  ): NitroImageStream;
+  ): ImageStream;
   getFaceDenseLandmarkFromFaceToken(token: ArrayBuffer): Point2f[];
   featureHubFaceInsert(feature: FaceFeatureIdentity): number;
   featureHubFaceUpdate(feature: FaceFeatureIdentity): boolean;
@@ -147,22 +147,21 @@ export interface NitroInspireFace
   getFeatureLength(): number;
   faceComparison(feature1: FaceFeature, feature2: FaceFeature): number;
 }
-export interface NitroImageStream
+export interface ImageStream
   extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
   writeImageToFile(filePath: string): void;
 }
-export interface NitroSession
-  extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
+export interface Session extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
   setTrackPreviewSize(size: number): void;
   setFaceDetectThreshold(threshold: number): void;
   setFilterMinimumFacePixelSize(size: number): void;
-  executeFaceTrack(imageStream: NitroImageStream): FaceData[];
+  executeFaceTrack(imageStream: ImageStream): FaceData[];
   extractFaceFeature(
-    imageStream: NitroImageStream,
+    imageStream: ImageStream,
     faceToken: ArrayBuffer
   ): FaceFeature;
   multipleFacePipelineProcess(
-    imageStream: NitroImageStream,
+    imageStream: ImageStream,
     multipleFaceData: FaceData[],
     parameter: SessionCustomParameter
   ): boolean;
