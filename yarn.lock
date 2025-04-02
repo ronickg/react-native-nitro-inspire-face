@@ -1798,11 +1798,11 @@ __metadata:
   linkType: hard
 
 "@evilmartians/lefthook@npm:^1.5.0":
-  version: 1.11.5
-  resolution: "@evilmartians/lefthook@npm:1.11.5"
+  version: 1.11.6
+  resolution: "@evilmartians/lefthook@npm:1.11.6"
   bin:
     lefthook: bin/index.js
-  checksum: ada913e2c91531e21ddc16cb674e6d1b5ce5af4497ee334351c188f853adcad2eaf25f35aa568353cae853cf763fe3a9544ba0e3388773977410bf83144be683
+  checksum: 4988eb60490d652dec97d182ac30c4271ab19a8ea4c71195da07c9d90c35d384668a6f2da06a016cde0f3682f9e51e602dded07ab8e82db878def6bbf33acf0a
   conditions: (os=darwin | os=linux | os=win32) & (cpu=x64 | cpu=arm64 | cpu=ia32)
   languageName: node
   linkType: hard
@@ -3130,11 +3130,11 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*":
-  version: 22.13.14
-  resolution: "@types/node@npm:22.13.14"
+  version: 22.13.17
+  resolution: "@types/node@npm:22.13.17"
   dependencies:
     undici-types: ~6.20.0
-  checksum: 8c5a3c1ec085bc320d6b19915406920e41bc482aed24098bf9858957ace22b762b50594a2805766b2d09966ea457dfad847b51a2d10dd4c1931955f80de598ce
+  checksum: 671e5120fa7f8ce82e7bc2652c3283be14e28a4c9558705553991902961cf0f1cba8789f9940c64063112b27010a5cd5e8d9bdd154564e68ca05c7cbce181280
   languageName: node
   linkType: hard
 
@@ -5254,9 +5254,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.5.73":
-  version: 1.5.126
-  resolution: "electron-to-chromium@npm:1.5.126"
-  checksum: 06064617ddf997633a14d069e7e67073721ca90351fef039440ff71d53a4ed3cb34d0cbf9ced8816e2f3e71ef3363593d5afd18f14d82f120a747ace00ff1a70
+  version: 1.5.129
+  resolution: "electron-to-chromium@npm:1.5.129"
+  checksum: 5a5d6b5c4e2baba03a2446e5e7cfddad046220007395efc685cc800b5a8cf2990cf4f76e24555210f844276a5219e8b955f879d62c0b12ebcda9d4377d6d4c8d
   languageName: node
   linkType: hard
 
@@ -5656,11 +5656,11 @@ __metadata:
   linkType: hard
 
 "eslint-plugin-prettier@npm:^5.0.1":
-  version: 5.2.5
-  resolution: "eslint-plugin-prettier@npm:5.2.5"
+  version: 5.2.6
+  resolution: "eslint-plugin-prettier@npm:5.2.6"
   dependencies:
     prettier-linter-helpers: ^1.0.0
-    synckit: ^0.10.2
+    synckit: ^0.11.0
   peerDependencies:
     "@types/eslint": ">=8.0.0"
     eslint: ">=8.0.0"
@@ -5671,7 +5671,7 @@ __metadata:
       optional: true
     eslint-config-prettier:
       optional: true
-  checksum: 72b4d90f42ead12e952484cfea96e28c08183f12bffe723d4655d06368760dff28d8c7e3e06bb40b6a1f0d4acb232fe8fdebc496162217085937264d9ff86f72
+  checksum: 2626c123916c4afe88d423bac9c3644d30af8beac4963b77bf447f42ba75ab592076716dfa9d43333bfde0ac482d8f8b6a49699403d128aee5effd609ca54bec
   languageName: node
   linkType: hard
 
@@ -6052,6 +6052,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fdir@npm:^6.4.3":
+  version: 6.4.3
+  resolution: "fdir@npm:6.4.3"
+  peerDependencies:
+    picomatch: ^3 || ^4
+  peerDependenciesMeta:
+    picomatch:
+      optional: true
+  checksum: fa53e13c63e8c14add5b70fd47e28267dd5481ebbba4b47720ec25aae7d10a800ef0f2e33de350faaf63c10b3d7b64138925718832220d593f75e724846c736d
+  languageName: node
+  linkType: hard
+
 "file-entry-cache@npm:^6.0.1":
   version: 6.0.1
   resolution: "file-entry-cache@npm:6.0.1"
@@ -6178,9 +6190,9 @@ __metadata:
   linkType: hard
 
 "flow-parser@npm:0.*":
-  version: 0.266.0
-  resolution: "flow-parser@npm:0.266.0"
-  checksum: ddbc7444808a0062f23d2c73c7dbf73f09a8d090eff9ae23711fbb946ac78dcc89b837928f72f6ae923cf383d3583d872919983d9cd44dbe760031348ddec3bc
+  version: 0.266.1
+  resolution: "flow-parser@npm:0.266.1"
+  checksum: dd4736baff444dd92c08370ed521085fa263b96dfac993886f418946507f596cbdafc598f33b7ad07400d041800d5d2bb4ec113886a56d8b961ea801bae6299a
   languageName: node
   linkType: hard
 
@@ -6477,7 +6489,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:^10.2.2, glob@npm:^10.3.10, glob@npm:^10.3.7, glob@npm:^10.4.2":
+"glob@npm:^10.2.2, glob@npm:^10.4.2":
   version: 10.4.5
   resolution: "glob@npm:10.4.5"
   dependencies:
@@ -6876,13 +6888,13 @@ __metadata:
   linkType: hard
 
 "image-size@npm:^1.0.2":
-  version: 1.2.0
-  resolution: "image-size@npm:1.2.0"
+  version: 1.2.1
+  resolution: "image-size@npm:1.2.1"
   dependencies:
     queue: 6.0.2
   bin:
     image-size: bin/image-size.js
-  checksum: 6264ae22ea6f349480c5305f84cd1e64f9757442abf4baac79e29519cba38f7ccab90488996e5e4d0c232b2f44dc720576fdf3e7e63c161e49eb1d099e563f82
+  checksum: 8601ddd4edc1db16f097f5cf585c23214e29c3b8f4d8a8f8d59b8e3bae2338c8a5073236bfff421d8541091a98a38b802ed049203c745286a69d1aac4e5bc4c7
   languageName: node
   linkType: hard
 
@@ -8376,9 +8388,9 @@ __metadata:
   linkType: hard
 
 "ky@npm:^1.2.0":
-  version: 1.7.5
-  resolution: "ky@npm:1.7.5"
-  checksum: 868793ff364b64b24a18c9b0484ef133b762cd0a824e0e06b45cbb2e34ee465c3ce3b88218422f7ce0413bc3900edebbfc564cecf5f5d29f208e3c7de8300169
+  version: 1.8.0
+  resolution: "ky@npm:1.8.0"
+  checksum: 589ecdc46670a1928d19c61501831443d2a8448ef4861e1beca88e0fcbc28f8f47f223601e92188eccfc4e2a2471b371981c30c47ac5482a19888d33bf34a593
   languageName: node
   linkType: hard
 
@@ -9451,12 +9463,11 @@ __metadata:
   linkType: hard
 
 "minizlib@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "minizlib@npm:3.0.1"
+  version: 3.0.2
+  resolution: "minizlib@npm:3.0.2"
   dependencies:
-    minipass: ^7.0.4
-    rimraf: ^5.0.5
-  checksum: da0a53899252380475240c587e52c824f8998d9720982ba5c4693c68e89230718884a209858c156c6e08d51aad35700a3589987e540593c36f6713fe30cd7338
+    minipass: ^7.1.2
+  checksum: 493bed14dcb6118da7f8af356a8947cf1473289c09658e5aabd69a737800a8c3b1736fb7d7931b722268a9c9bc038a6d53c049b6a6af24b34a121823bb709996
   languageName: node
   linkType: hard
 
@@ -9557,18 +9568,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nitro-codegen@npm:^0.22.1":
-  version: 0.22.1
-  resolution: "nitro-codegen@npm:0.22.1"
+"nitro-codegen@npm:^0.25.2":
+  version: 0.25.2
+  resolution: "nitro-codegen@npm:0.25.2"
   dependencies:
     chalk: ^5.3.0
-    react-native-nitro-modules: ^0.22.1
+    react-native-nitro-modules: ^0.25.2
     ts-morph: ^25.0.0
     yargs: ^17.7.2
     zod: ^3.23.8
   bin:
     nitro-codegen: lib/index.js
-  checksum: 7de9d3e965722e5a88cba32e73bb15426d2078148788292c4ff990e827524f1b750d6dc3172b06166d0357aba9bd71b462d170abe32592e345e4015b170df198
+  checksum: 5ae8ef9a535ae9ef08e920cea9700c81483926ab0df27f9251836a4728a921f7db41dab6fbee89d45ae44ce1c82a40c465d0d6e8607444b3b7feef8f86830056
   languageName: node
   linkType: hard
 
@@ -9594,22 +9605,22 @@ __metadata:
   linkType: hard
 
 "node-gyp@npm:latest":
-  version: 11.1.0
-  resolution: "node-gyp@npm:11.1.0"
+  version: 11.2.0
+  resolution: "node-gyp@npm:11.2.0"
   dependencies:
     env-paths: ^2.2.0
     exponential-backoff: ^3.1.1
-    glob: ^10.3.10
     graceful-fs: ^4.2.6
     make-fetch-happen: ^14.0.3
     nopt: ^8.0.0
     proc-log: ^5.0.0
     semver: ^7.3.5
     tar: ^7.4.3
+    tinyglobby: ^0.2.12
     which: ^5.0.0
   bin:
     node-gyp: bin/node-gyp.js
-  checksum: b196da39a7a45f302d6e03cfdb579eeecbfffa1ab3796de45652c2c0dcbf46b83fde715b054e4d00aa53da5f33033ac5791e20cbb7cc11267dac4f8975ef276c
+  checksum: 2536282ba81f8a94b29482d3622b6ab298611440619e46de4512a6f32396a68b5530357c474b859787069d84a4c537d99e0c71078cce5b9f808bf84eeb78e8fb
   languageName: node
   linkType: hard
 
@@ -10258,6 +10269,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"picomatch@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "picomatch@npm:4.0.2"
+  checksum: a7a5188c954f82c6585720e9143297ccd0e35ad8072231608086ca950bee672d51b0ef676254af0788205e59bd4e4deb4e7708769226bed725bf13370a7d1464
+  languageName: node
+  linkType: hard
+
 "pify@npm:^4.0.1":
   version: 4.0.1
   resolution: "pify@npm:4.0.1"
@@ -10597,8 +10615,8 @@ __metadata:
   linkType: hard
 
 "react-native-builder-bob@npm:^0.39.0":
-  version: 0.39.0
-  resolution: "react-native-builder-bob@npm:0.39.0"
+  version: 0.39.1
+  resolution: "react-native-builder-bob@npm:0.39.1"
   dependencies:
     "@babel/core": ^7.25.2
     "@babel/plugin-transform-strict-mode": ^7.24.7
@@ -10623,7 +10641,7 @@ __metadata:
     yargs: ^17.5.1
   bin:
     bob: bin/bob
-  checksum: f7412ff989c260ff8f02d6ea58d3ab8ed7b43147baf1c8213ab30800f6882f2be47b33004c845d0e6b30a6e9667d0c8861ae6008dad9a23935c24a5a2a1099ae
+  checksum: d17f017beae07455997c63e36ca28fee853c18308939f30f00b471b3beafafb98beb5dce9a5f1634da3c5fbbf2538666048a88bd144b374d3998c8763da064a0
   languageName: node
   linkType: hard
 
@@ -10693,19 +10711,19 @@ __metadata:
     eslint-config-prettier: ^9.0.0
     eslint-plugin-prettier: ^5.0.1
     jest: ^29.7.0
-    nitro-codegen: ^0.22.1
+    nitro-codegen: ^0.25.2
     prettier: ^3.0.3
     react: 19.0.0
     react-native: 0.78.1
     react-native-builder-bob: ^0.39.0
-    react-native-nitro-modules: ^0.22.1
+    react-native-nitro-modules: ^0.25.2
     release-it: ^17.10.0
     turbo: ^1.10.7
     typescript: ^5.2.2
   peerDependencies:
     react: "*"
     react-native: "*"
-    react-native-nitro-modules: ^0.22.1
+    react-native-nitro-modules: ^0.25.2
   languageName: unknown
   linkType: soft
 
@@ -10719,9 +10737,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-nitro-modules@npm:^0.25.2":
+  version: 0.25.2
+  resolution: "react-native-nitro-modules@npm:0.25.2"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 3b61943021fda1fb34235037020d360dabef33cb4b6fe217b070f7500e3976c0acc6a1bd9dcfe212a704723d23ef7c21ec7c75c240d980daab0a95936aae6bb9
+  languageName: node
+  linkType: hard
+
 "react-native-reanimated@npm:^3.17.1":
-  version: 3.17.1
-  resolution: "react-native-reanimated@npm:3.17.1"
+  version: 3.17.2
+  resolution: "react-native-reanimated@npm:3.17.2"
   dependencies:
     "@babel/plugin-transform-arrow-functions": ^7.0.0-0
     "@babel/plugin-transform-class-properties": ^7.0.0-0
@@ -10739,7 +10767,7 @@ __metadata:
     "@babel/core": ^7.0.0-0
     react: "*"
     react-native: "*"
-  checksum: fd05040a3fc6a8f4efb387657c0cd6c314e5e6b50f859e127d6891d8f81c65b020ddcf78615aa0074b4e134e450d38c40db916c544e1e2efa26c50c82815607d
+  checksum: f94a84996fae553c40ba8e51fdf8bd54eb4def18f7ece6a6fa204e2047574e053696f4baa58545115821bc65e03d790fd12ff05fe0c68bc911a4f153934698b4
   languageName: node
   linkType: hard
 
@@ -11252,17 +11280,6 @@ __metadata:
   bin:
     rimraf: bin.js
   checksum: 87f4164e396f0171b0a3386cc1877a817f572148ee13a7e113b238e48e8a9f2f31d009a92ec38a591ff1567d9662c6b67fd8818a2dbbaed74bc26a87a2a4a9a0
-  languageName: node
-  linkType: hard
-
-"rimraf@npm:^5.0.5":
-  version: 5.0.10
-  resolution: "rimraf@npm:5.0.10"
-  dependencies:
-    glob: ^10.3.7
-  bin:
-    rimraf: dist/esm/bin.mjs
-  checksum: 50e27388dd2b3fa6677385fc1e2966e9157c89c86853b96d02e6915663a96b7ff4d590e14f6f70e90f9b554093aa5dbc05ac3012876be558c06a65437337bc05
   languageName: node
   linkType: hard
 
@@ -12117,13 +12134,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"synckit@npm:^0.10.2":
-  version: 0.10.3
-  resolution: "synckit@npm:0.10.3"
+"synckit@npm:^0.11.0":
+  version: 0.11.1
+  resolution: "synckit@npm:0.11.1"
   dependencies:
     "@pkgr/core": ^0.2.0
     tslib: ^2.8.1
-  checksum: 34afc6061fa10f906bf9d8a7adca264d15e41c242289180c94dabe5f53ffe1b4cc7d485792df079ee7a1d32a813809875ef06ac086ed53527c7b847a0e79dc16
+  checksum: 190164e51f69a9f0485b447991ef7bb76c4a40f768f87865b9512e46bba7086b5527c664204370184aa00b2c591d6f60119b3f0a173113e0d25c33396a169fec
   languageName: node
   linkType: hard
 
@@ -12215,6 +12232,16 @@ __metadata:
   version: 0.3.2
   resolution: "tinyexec@npm:0.3.2"
   checksum: bd491923020610bdeadb0d8cf5d70e7cbad5a3201620fd01048c9bf3b31ffaa75c33254e1540e13b993ce4e8187852b0b5a93057bb598e7a57afa2ca2048a35c
+  languageName: node
+  linkType: hard
+
+"tinyglobby@npm:^0.2.12":
+  version: 0.2.12
+  resolution: "tinyglobby@npm:0.2.12"
+  dependencies:
+    fdir: ^6.4.3
+    picomatch: ^4.0.2
+  checksum: ef9357fa1b2b661afdccd315cb4995f5f36bce948faaace68aae85fe57bdd8f837883045c88efc50d3186bac6586e4ae2f31026b9a3aac061b884217e6092e23
   languageName: node
   linkType: hard
 
@@ -12422,9 +12449,9 @@ __metadata:
   linkType: hard
 
 "type-fest@npm:^4.18.2, type-fest@npm:^4.21.0, type-fest@npm:^4.37.0, type-fest@npm:^4.6.0":
-  version: 4.38.0
-  resolution: "type-fest@npm:4.38.0"
-  checksum: 85fd7f3feff42bab6eac99f9f056d67932c36f834da87d68b0e89c040671415a902848c81be4d0f02919d157d7eae70dccf42c42dd2e2000d80e3ae1b97a9101
+  version: 4.39.0
+  resolution: "type-fest@npm:4.39.0"
+  checksum: 430acd3311a156ed041e93d6de7bf58fa17a9e5c0156e4831e15fb40de676fcc0b09382ee3f609b2919988a1ed97cf3ed3af688634e0fb92990cb0380ca95eb0
   languageName: node
   linkType: hard
 
@@ -13098,11 +13125,11 @@ __metadata:
   linkType: hard
 
 "yaml@npm:^2.2.1":
-  version: 2.7.0
-  resolution: "yaml@npm:2.7.0"
+  version: 2.7.1
+  resolution: "yaml@npm:2.7.1"
   bin:
     yaml: bin.mjs
-  checksum: 6e8b2f9b9d1b18b10274d58eb3a47ec223d9a93245a890dcb34d62865f7e744747190a9b9177d5f0ef4ea2e44ad2c0214993deb42e0800766203ac46f00a12dd
+  checksum: 385f8115ddfafdf8e599813cca8b2bf4e3f6a01b919fff5ae7da277e164df684d7dfe558b4085172094792b5a04786d3c55fa8b74abb0ee029873f031150bb80
   languageName: node
   linkType: hard
 
