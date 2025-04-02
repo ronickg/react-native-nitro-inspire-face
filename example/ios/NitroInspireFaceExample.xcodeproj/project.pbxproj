@@ -11,6 +11,8 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		9263870C2D9D7A4F00CCF6E4 /* Pikachu in Resources */ = {isa = PBXBuildFile; fileRef = 9263870B2D9D7A4F00CCF6E4 /* Pikachu */; };
+		9263870D2D9D7A4F00CCF6E4 /* Megatron in Resources */ = {isa = PBXBuildFile; fileRef = 9263870A2D9D7A4F00CCF6E4 /* Megatron */; };
 		FA12FD3C6EF1F0F96BA41991 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
@@ -24,6 +26,8 @@
 		5DCACB8F33CDC322A6C60F78 /* libPods-NitroInspireFaceExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NitroInspireFaceExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = NitroInspireFaceExample/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = NitroInspireFaceExample/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		9263870A2D9D7A4F00CCF6E4 /* Megatron */ = {isa = PBXFileReference; lastKnownFileType = file; path = Megatron; sourceTree = "<group>"; };
+		9263870B2D9D7A4F00CCF6E4 /* Pikachu */ = {isa = PBXFileReference; lastKnownFileType = file; path = Pikachu; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -42,6 +46,8 @@
 		13B07FAE1A68108700A75B9A /* NitroInspireFaceExample */ = {
 			isa = PBXGroup;
 			children = (
+				9263870A2D9D7A4F00CCF6E4 /* Megatron */,
+				9263870B2D9D7A4F00CCF6E4 /* Pikachu */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
@@ -159,6 +165,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
+				9263870C2D9D7A4F00CCF6E4 /* Pikachu in Resources */,
+				9263870D2D9D7A4F00CCF6E4 /* Megatron in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				FA12FD3C6EF1F0F96BA41991 /* PrivacyInfo.xcprivacy in Resources */,
 			);
@@ -378,10 +386,7 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
@@ -450,10 +455,7 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;

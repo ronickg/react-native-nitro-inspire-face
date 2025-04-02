@@ -19,6 +19,7 @@ public class HybridAssetManager: HybridAssetManagerSpec {
 
         // Check if file already exists
         if FileManager.default.fileExists(atPath: destFile.path) {
+            print("[HybridAssetManager] File already exists at destination")
             return true
         }
 
@@ -30,14 +31,16 @@ public class HybridAssetManager: HybridAssetManagerSpec {
             // Try to get the asset from the main bundle
             if let assetURL = Bundle.main.url(forResource: assetPath, withExtension: nil) {
                 try FileManager.default.copyItem(at: assetURL, to: destFile)
+                print("[HybridAssetManager] Successfully copied asset to: \(destFile.path)")
                 return true
             } else {
+                print("[HybridAssetManager] Failed to find asset in bundle: \(assetPath)")
                 throw NSError(domain: "NitroInspireFaceUtils",
                             code: 1,
                             userInfo: [NSLocalizedDescriptionKey: "Asset '\(assetPath)' does not exist"])
             }
         } catch {
-            print("Error copying asset: \(error.localizedDescription)")
+            print("[HybridAssetManager] Error copying asset: \(error.localizedDescription)")
             return false
         }
     }

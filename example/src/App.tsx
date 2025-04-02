@@ -20,7 +20,7 @@ InspireFace.featureHubDataEnable({
   primaryKeyMode: PrimaryKeyMode.AUTO_INCREMENT,
 });
 InspireFace.featureHubFaceSearchThresholdSetting(0.42);
-InspireFace.launch('Pikachu');
+InspireFace.launch('Megatron');
 
 export default function App() {
   useEffect(() => {
