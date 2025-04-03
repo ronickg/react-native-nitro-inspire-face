@@ -100,4 +100,89 @@ namespace margelo::nitro::nitroinspireface
     // Create a copy of the data in an ArrayBuffer
     return ArrayBuffer::copy(bitmapData.data, dataSize);
   }
+
+  // void HybridImageBitmap::writeToFile(const std::string &filePath)
+  // {
+  //   if (_bitmap == nullptr)
+  //   {
+  //     throw std::runtime_error("HybridImageBitmap is not initialized");
+  //   }
+
+  //   HResult result = HFImageBitmapWriteToFile(_bitmap, filePath.c_str());
+  //   if (result != HSUCCEED)
+  //   {
+  //     throw std::runtime_error("Failed to write bitmap to file with error code: " + std::to_string(result));
+  //   }
+  // }
+
+  void HybridImageBitmap::drawRect(const FaceRect &rect, const Color &color, double thickness)
+  {
+    if (_bitmap == nullptr)
+    {
+      throw std::runtime_error("HybridImageBitmap is not initialized");
+    }
+
+    HFaceRect nativeRect = {
+        static_cast<HInt32>(rect.x),
+        static_cast<HInt32>(rect.y),
+        static_cast<HInt32>(rect.width),
+        static_cast<HInt32>(rect.height)};
+
+    HColor nativeColor = {
+        static_cast<HFloat>(color.r),
+        static_cast<HFloat>(color.g),
+        static_cast<HFloat>(color.b)};
+
+    HResult result = HFImageBitmapDrawRect(_bitmap, nativeRect, nativeColor, static_cast<int>(thickness));
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to draw rectangle with error code: " + std::to_string(result));
+    }
+  }
+
+  void HybridImageBitmap::drawCircleF(const Point2f &point, double radius, const Color &color, double thickness)
+  {
+    if (_bitmap == nullptr)
+    {
+      throw std::runtime_error("HybridImageBitmap is not initialized");
+    }
+
+    HPoint2f nativePoint = {
+        static_cast<HFloat>(point.x),
+        static_cast<HFloat>(point.y)};
+
+    HColor nativeColor = {
+        static_cast<HFloat>(color.r),
+        static_cast<HFloat>(color.g),
+        static_cast<HFloat>(color.b)};
+
+    HResult result = HFImageBitmapDrawCircleF(_bitmap, nativePoint, static_cast<int>(radius), nativeColor, static_cast<int>(thickness));
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to draw circle with error code: " + std::to_string(result));
+    }
+  }
+
+  void HybridImageBitmap::drawCircle(const Point2i &point, double radius, const Color &color, double thickness)
+  {
+    if (_bitmap == nullptr)
+    {
+      throw std::runtime_error("HybridImageBitmap is not initialized");
+    }
+
+    HPoint2i nativePoint = {
+        static_cast<HInt32>(point.x),
+        static_cast<HInt32>(point.y)};
+
+    HColor nativeColor = {
+        static_cast<HFloat>(color.r),
+        static_cast<HFloat>(color.g),
+        static_cast<HFloat>(color.b)};
+
+    HResult result = HFImageBitmapDrawCircle(_bitmap, nativePoint, static_cast<int>(radius), nativeColor, static_cast<int>(thickness));
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to draw circle with error code: " + std::to_string(result));
+    }
+  }
 } // namespace margelo::nitro::nitroinspireface

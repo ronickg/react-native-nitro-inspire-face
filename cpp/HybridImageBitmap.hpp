@@ -2,6 +2,10 @@
 
 #include "HybridImageBitmapSpec.hpp"
 #include "inspireface.h"
+#include "FaceRect.hpp"
+#include "Color.hpp"
+#include "Point2f.hpp"
+#include "Point2i.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
 #include <NitroModules/NitroLogger.hpp>
 #include <memory>
@@ -32,11 +36,17 @@ namespace margelo::nitro::nitroinspireface
     void cleanup();
 
   public:
-    // Methods
+    // Properties
     double getWidth() override;
     double getHeight() override;
     double getChannels() override;
     std::shared_ptr<ArrayBuffer> getData() override;
+
+    // Methods
+    // void writeToFile(const std::string &filePath) override;
+    void drawRect(const FaceRect &rect, const Color &color, double thickness) override;
+    void drawCircleF(const Point2f &point, double radius, const Color &color, double thickness) override;
+    void drawCircle(const Point2i &point, double radius, const Color &color, double thickness) override;
 
     // Get the native bitmap handle
     HFImageBitmap getNativeHandle() const { return _bitmap; }

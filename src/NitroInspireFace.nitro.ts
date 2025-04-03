@@ -1,27 +1,12 @@
 import type { HybridObject } from 'react-native-nitro-modules';
-
-export enum SearchMode {
-  EAGER = 0,
-  EXHAUSTIVE,
-}
-
-export enum PrimaryKeyMode {
-  AUTO_INCREMENT = 0,
-  MANUAL_INPUT,
-}
-
-export enum DetectMode {
-  ALWAYS_DETECT = 0,
-  LIGHT_TRACK,
-  TRACK_BY_DETECTION,
-}
-
-export enum CameraRotation {
-  ROTATION_0 = 0,
-  ROTATION_90,
-  ROTATION_180,
-  ROTATION_270,
-}
+import type {
+  AppleCoreMLInferenceMode,
+  CameraRotation,
+  DetectMode,
+  ImageFormat,
+  PrimaryKeyMode,
+  SearchMode,
+} from './types';
 
 export type SessionCustomParameter = {
   enableRecognition?: boolean;
@@ -41,14 +26,6 @@ export type FeatureHubConfiguration = {
   searchThreshold: number;
   primaryKeyMode: PrimaryKeyMode;
 };
-
-export interface ImageBitmap
-  extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
-  readonly width: number;
-  readonly height: number;
-  readonly channels: number;
-  readonly data: ArrayBuffer;
-}
 
 export type FaceRect = {
   x: number;
@@ -74,6 +51,17 @@ export type FaceData = {
 export type Point2f = {
   x: number;
   y: number;
+};
+
+export type Point2i = {
+  x: number;
+  y: number;
+};
+
+export type Color = {
+  r: number;
+  g: number;
+  b: number;
 };
 
 export type FaceFeature = number[];
@@ -107,12 +95,56 @@ export type FaceAttributeResult = {
   gender: number;
   race: number;
 };
+
+export type SimilarityConverterConfig = {
+  threshold: number;
+  middleScore: number;
+  steepness: number;
+  outputMin: number;
+  outputMax: number;
+};
+
+export interface ImageBitmap
+  extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
+  readonly width: number;
+  readonly height: number;
+  readonly channels: number;
+  readonly data: ArrayBuffer;
+  // writeToFile(filePath: string): void; // TODO: Seems like this function is not working
+  drawRect(rect: FaceRect, color: Color, thickness: number): void;
+  drawCircleF(
+    point: Point2f,
+    radius: number,
+    color: Color,
+    thickness: number
+  ): void;
+  drawCircle(
+    point: Point2i,
+    radius: number,
+    color: Color,
+    thickness: number
+  ): void;
+}
+
+export interface ImageStream
+  extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
+  writeImageToFile(filePath: string): void;
+  setFormat(format: ImageFormat): void;
+  setRotation(rotation: CameraRotation): void;
+  createImageBitmap(isRotate?: boolean, scale?: number): ImageBitmap;
+}
 export interface InspireFace
   extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
   readonly version: string;
-  launch(path: string): boolean;
-  featureHubDataEnable(config: FeatureHubConfiguration): boolean;
-  featureHubFaceSearchThresholdSetting(threshold: number): boolean;
+  readonly featureLength: number;
+  readonly faceDenseLandmarkLength: number;
+  readonly faceBasicTokenLength: number;
+  launch(path: string): void;
+  reload(path: string): void;
+  terminate(): void;
+  featureHubDataEnable(config: FeatureHubConfiguration): void;
+  featureHubDataDisable(): void;
+  featureHubFaceSearchThresholdSetting(threshold: number): void;
   createSession(
     parameter: SessionCustomParameter,
     detectMode: DetectMode,
@@ -134,7 +166,14 @@ export interface InspireFace
     bitmap: ImageBitmap,
     rotation: CameraRotation
   ): ImageStream;
-  getFaceDenseLandmarkFromFaceToken(token: ArrayBuffer): Point2f[];
+  getFaceDenseLandmarkFromFaceToken(
+    token: ArrayBuffer,
+    num?: number
+  ): Point2f[];
+  getFaceFiveKeyPointsFromFaceToken(
+    token: ArrayBuffer,
+    num?: number
+  ): Point2f[];
   featureHubFaceInsert(feature: FaceFeatureIdentity): number;
   featureHubFaceUpdate(feature: FaceFeatureIdentity): boolean;
   featureHubFaceRemove(id: number): boolean;
@@ -144,22 +183,38 @@ export interface InspireFace
     feature: FaceFeature,
     topK: number
   ): SearchTopKResult[];
-  getFeatureLength(): number;
+  featureHubGetFaceCount(): number;
+  featureHubGetExistingIds(): number[];
   faceComparison(feature1: FaceFeature, feature2: FaceFeature): number;
-}
-export interface ImageStream
-  extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
-  writeImageToFile(filePath: string): void;
+  getRecommendedCosineThreshold(): number;
+  cosineSimilarityConvertToPercentage(similarity: number): number;
+  updateCosineSimilarityConverter(config: SimilarityConverterConfig): void;
+  getCosineSimilarityConverter(): SimilarityConverterConfig;
+  setExpansiveHardwareRockchipDmaHeapPath(path: string): void;
+  queryExpansiveHardwareRockchipDmaHeapPath(): string;
+  setAppleCoreMLInferenceMode(mode: AppleCoreMLInferenceMode): void;
+  setCudaDeviceId(deviceId: number): void;
+  getCudaDeviceId(): number;
+  printCudaDeviceInfo(): void;
+  getNumCudaDevices(): number;
+  checkCudaDeviceSupport(): boolean;
 }
 export interface Session extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
   setTrackPreviewSize(size: number): void;
   setFaceDetectThreshold(threshold: number): void;
   setFilterMinimumFacePixelSize(size: number): void;
+  setTrackModeSmoothRatio(ratio: number): void;
+  setTrackModeNumSmoothCacheFrame(num: number): void;
+  setTrackModeDetectInterval(num: number): void;
   executeFaceTrack(imageStream: ImageStream): FaceData[];
   extractFaceFeature(
     imageStream: ImageStream,
     faceToken: ArrayBuffer
   ): FaceFeature;
+  getFaceAlignmentImage(
+    imageStream: ImageStream,
+    faceToken: ArrayBuffer
+  ): ImageBitmap;
   multipleFacePipelineProcess(
     imageStream: ImageStream,
     multipleFaceData: FaceData[],

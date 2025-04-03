@@ -81,6 +81,48 @@ namespace margelo::nitro::nitroinspireface
     }
   }
 
+  void HybridSession::setTrackModeSmoothRatio(double ratio)
+  {
+    if (_session == nullptr)
+    {
+      throw std::runtime_error("HybridSession is not initialized");
+    }
+
+    HResult result = HFSessionSetTrackModeSmoothRatio(_session, static_cast<HFloat>(ratio));
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to set track mode smooth ratio with error code: " + std::to_string(result));
+    }
+  }
+
+  void HybridSession::setTrackModeNumSmoothCacheFrame(double num)
+  {
+    if (_session == nullptr)
+    {
+      throw std::runtime_error("HybridSession is not initialized");
+    }
+
+    HResult result = HFSessionSetTrackModeNumSmoothCacheFrame(_session, static_cast<HInt32>(num));
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to set track mode num smooth cache frame with error code: " + std::to_string(result));
+    }
+  }
+
+  void HybridSession::setTrackModeDetectInterval(double num)
+  {
+    if (_session == nullptr)
+    {
+      throw std::runtime_error("HybridSession is not initialized");
+    }
+
+    HResult result = HFSessionSetTrackModeDetectInterval(_session, static_cast<HInt32>(num));
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to set track mode detect interval with error code: " + std::to_string(result));
+    }
+  }
+
   std::vector<FaceData> HybridSession::executeFaceTrack(const std::shared_ptr<HybridImageStreamSpec> &imageStream)
   {
     if (!_session)
@@ -511,6 +553,42 @@ namespace margelo::nitro::nitroinspireface
     }
 
     return attributeValues;
+  }
+
+  std::shared_ptr<HybridImageBitmapSpec> HybridSession::getFaceAlignmentImage(const std::shared_ptr<HybridImageStreamSpec> &imageStream, const std::shared_ptr<ArrayBuffer> &faceToken)
+  {
+    if (_session == nullptr)
+    {
+      Logger::log(LogLevel::Error, "HybridSession", "HybridSession is not initialized");
+      throw std::runtime_error("HybridSession is not initialized");
+    }
+
+    if (!imageStream)
+    {
+      throw std::runtime_error("Image stream is null");
+    }
+
+    auto nitroImageStream = std::dynamic_pointer_cast<HybridImageStream>(imageStream);
+    if (!nitroImageStream)
+    {
+      throw std::runtime_error("Failed to cast to HybridImageStream");
+    }
+
+    // Create face token struct
+    HFFaceBasicToken token = {};
+    token.size = static_cast<HInt32>(faceToken->size());
+    token.data = faceToken->data();
+
+    // Get aligned image
+    HFImageBitmap alignedBitmap = nullptr;
+    HResult result = HFFaceGetFaceAlignmentImage(_session, nitroImageStream->getNativeHandle(), token, &alignedBitmap);
+
+    if (result != HSUCCEED || alignedBitmap == nullptr)
+    {
+      throw std::runtime_error("Failed to get face alignment image with error code: " + std::to_string(result));
+    }
+
+    return std::make_shared<HybridImageBitmap>(alignedBitmap);
   }
 
 } // namespace margelo::nitro::nitroinspireface

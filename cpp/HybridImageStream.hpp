@@ -2,9 +2,16 @@
 
 #include "HybridImageStreamSpec.hpp"
 #include "inspireface.h"
+#include "ImageFormat.hpp"
+#include "CameraRotation.hpp"
+#include "HybridImageBitmapSpec.hpp"
+#include <memory>
+#include <optional>
 
 namespace margelo::nitro::nitroinspireface
 {
+  class HybridImageBitmap;
+
   /**
    * Implementation of the HybridImageStream module
    */
@@ -30,6 +37,9 @@ namespace margelo::nitro::nitroinspireface
   public:
     // Methods
     void writeImageToFile(const std::string &filePath) override;
+    void setFormat(ImageFormat format) override;
+    void setRotation(CameraRotation rotation) override;
+    std::shared_ptr<HybridImageBitmapSpec> createImageBitmap(std::optional<bool> isRotate = std::nullopt, std::optional<double> scale = std::nullopt) override;
 
     // Get the native stream handle
     HFImageStream getNativeHandle() const { return _stream; }

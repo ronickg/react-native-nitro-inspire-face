@@ -36,7 +36,7 @@ namespace margelo::nitro::nitroinspireface
     // return "1.0.0";
   }
 
-  bool HybridInspireFace::launch(const std::string &path)
+  void HybridInspireFace::launch(const std::string &path)
   {
     try
     {
@@ -48,7 +48,7 @@ namespace margelo::nitro::nitroinspireface
       if (!assetManager->copyAssetToFile(path, destPath))
       {
         Logger::log(LogLevel::Error, TAG, "Failed to copy asset file to '%s'", destPath.c_str());
-        return false;
+        throw std::runtime_error("Failed to copy asset file");
       }
       // Log success and launch
       Logger::log(LogLevel::Info, TAG, "Launching HybridInspireFace from: %s", destPath.c_str());
@@ -57,19 +57,37 @@ namespace margelo::nitro::nitroinspireface
       if (result != HSUCCEED)
       {
         Logger::log(LogLevel::Error, TAG, "Failed to launch HybridInspireFace SDK with error code: %ld", result);
-        return false;
+        throw std::runtime_error("Failed to launch HybridInspireFace SDK");
       }
-
-      return true;
     }
     catch (const std::exception &e)
     {
       Logger::log(LogLevel::Error, TAG, "Unexpected error during launch: %s", e.what());
-      return false;
+      throw;
     }
   }
 
-  bool HybridInspireFace::featureHubDataEnable(const FeatureHubConfiguration &config)
+  void HybridInspireFace::reload(const std::string &path)
+  {
+    HResult result = HFReloadInspireFace(path.c_str());
+    if (result != HSUCCEED)
+    {
+      Logger::log(LogLevel::Error, TAG, "Failed to reload InspireFace with error code: %ld", result);
+      throw std::runtime_error("Failed to reload InspireFace");
+    }
+  }
+
+  void HybridInspireFace::terminate()
+  {
+    HResult result = HFTerminateInspireFace();
+    if (result != HSUCCEED)
+    {
+      Logger::log(LogLevel::Error, TAG, "Failed to terminate InspireFace with error code: %ld", result);
+      throw std::runtime_error("Failed to terminate InspireFace");
+    }
+  }
+
+  void HybridInspireFace::featureHubDataEnable(const FeatureHubConfiguration &config)
   {
     const std::string databasesDirectory = assetManager->getDatabasesDirectory();
     const std::string destPath = databasesDirectory + "/" + config.persistenceDbPath;
@@ -92,20 +110,18 @@ namespace margelo::nitro::nitroinspireface
     if (result != HSUCCEED)
     {
       Logger::log(LogLevel::Error, TAG, "Failed to enable feature hub data with error code: %ld", result);
-      return false;
+      throw std::runtime_error("Failed to enable feature hub data");
     }
-    return true;
   }
 
-  bool HybridInspireFace::featureHubFaceSearchThresholdSetting(double threshold)
+  void HybridInspireFace::featureHubFaceSearchThresholdSetting(double threshold)
   {
     HResult result = HFFeatureHubFaceSearchThresholdSetting(static_cast<float>(threshold));
     if (result != HSUCCEED)
     {
       Logger::log(LogLevel::Error, TAG, "Failed to set feature hub face search threshold with error code: %ld", result);
-      return false;
+      throw std::runtime_error("Failed to set feature hub face search threshold");
     }
-    return true;
   }
 
   std::shared_ptr<HybridSessionSpec> HybridInspireFace::createSession(
@@ -202,14 +218,21 @@ namespace margelo::nitro::nitroinspireface
     return std::make_shared<HybridImageStream>(stream);
   }
 
-  std::vector<Point2f> HybridInspireFace::getFaceDenseLandmarkFromFaceToken(const std::shared_ptr<ArrayBuffer> &token)
+  std::vector<Point2f> HybridInspireFace::getFaceDenseLandmarkFromFaceToken(const std::shared_ptr<ArrayBuffer> &token, std::optional<double> num)
   {
-    // Get the number of landmarks from the HybridInspireFace API
+    // Get the number of landmarks from the HybridInspireFace API if not provided
     int32_t numLandmarks = 0;
-    HResult result = HFGetNumOfFaceDenseLandmark(&numLandmarks);
-    if (result != HSUCCEED || numLandmarks <= 0)
+    if (num.has_value())
     {
-      throw std::runtime_error("Failed to get number of face landmarks with error code: " + std::to_string(result));
+      numLandmarks = static_cast<int32_t>(num.value());
+    }
+    else
+    {
+      HResult result = HFGetNumOfFaceDenseLandmark(&numLandmarks);
+      if (result != HSUCCEED || numLandmarks <= 0)
+      {
+        throw std::runtime_error("Failed to get number of face landmarks with error code: " + std::to_string(result));
+      }
     }
 
     // Create the HFFaceBasicToken structure from our token
@@ -227,7 +250,7 @@ namespace margelo::nitro::nitroinspireface
     auto landmarks = std::make_unique<HPoint2f[]>(numLandmarks);
 
     // Get the landmarks from the token
-    result = HFGetFaceDenseLandmarkFromFaceToken(faceToken, landmarks.get(), numLandmarks);
+    HResult result = HFGetFaceDenseLandmarkFromFaceToken(faceToken, landmarks.get(), numLandmarks);
     if (result != HSUCCEED)
     {
       throw std::runtime_error("Failed to get face dense landmarks with error code: " + std::to_string(result));
@@ -245,6 +268,46 @@ namespace margelo::nitro::nitroinspireface
     }
 
     return landmarkPoints;
+  }
+
+  std::vector<Point2f> HybridInspireFace::getFaceFiveKeyPointsFromFaceToken(const std::shared_ptr<ArrayBuffer> &token, std::optional<double> num)
+  {
+    // Default to 5 key points if not specified
+    int32_t numKeyPoints = num.has_value() ? static_cast<int32_t>(num.value()) : 5;
+
+    // Create the HFFaceBasicToken structure from our token
+    HFFaceBasicToken faceToken;
+    faceToken.size = static_cast<HInt32>(token->size());
+
+    // Get the raw data from the ArrayBuffer
+    if (!token || token->size() == 0)
+    {
+      throw std::runtime_error("Invalid face token data");
+    }
+    faceToken.data = reinterpret_cast<void *>(token->data());
+
+    // Allocate memory for key points
+    auto keyPoints = std::make_unique<HPoint2f[]>(numKeyPoints);
+
+    // Get the key points from the token
+    HResult result = HFGetFaceFiveKeyPointsFromFaceToken(faceToken, keyPoints.get(), numKeyPoints);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to get face five key points with error code: " + std::to_string(result));
+    }
+
+    // Convert to Point2f vector
+    std::vector<Point2f> keyPointsVector;
+    keyPointsVector.reserve(numKeyPoints);
+
+    for (int i = 0; i < numKeyPoints; i++)
+    {
+      keyPointsVector.emplace_back(
+          static_cast<double>(keyPoints[i].x),
+          static_cast<double>(keyPoints[i].y));
+    }
+
+    return keyPointsVector;
   }
 
   double HybridInspireFace::featureHubFaceInsert(const FaceFeatureIdentity &feature)
@@ -402,6 +465,128 @@ namespace margelo::nitro::nitroinspireface
     return static_cast<double>(length);
   }
 
+  double HybridInspireFace::getFaceDenseLandmarkLength()
+  {
+    HInt32 length = 0;
+    HResult result = HFGetNumOfFaceDenseLandmark(&length);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to get face dense landmark length with error code: " + std::to_string(result));
+    }
+    return static_cast<double>(length);
+  }
+
+  double HybridInspireFace::getFaceBasicTokenLength()
+  {
+    HInt32 length = 0;
+    HResult result = HFGetFaceBasicTokenSize(&length);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to get face basic token length with error code: " + std::to_string(result));
+    }
+    return static_cast<double>(length);
+  }
+
+  double HybridInspireFace::getRecommendedCosineThreshold()
+  {
+    HFloat threshold = 0;
+    HResult result = HFGetRecommendedCosineThreshold(&threshold);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to get recommended cosine threshold with error code: " + std::to_string(result));
+    }
+    return static_cast<double>(threshold);
+  }
+
+  double HybridInspireFace::cosineSimilarityConvertToPercentage(double similarity)
+  {
+    HFloat percentage = 0;
+    HResult result = HFCosineSimilarityConvertToPercentage(static_cast<HFloat>(similarity), &percentage);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to convert cosine similarity to percentage with error code: " + std::to_string(result));
+    }
+    return static_cast<double>(percentage);
+  }
+
+  void HybridInspireFace::updateCosineSimilarityConverter(const SimilarityConverterConfig &config)
+  {
+    // Convert our config to the C API config
+    ::HFSimilarityConverterConfig cConfig;
+    cConfig.threshold = config.threshold;
+    cConfig.middleScore = config.middleScore;
+    cConfig.steepness = config.steepness;
+    cConfig.outputMin = config.outputMin;
+    cConfig.outputMax = config.outputMax;
+
+    HResult result = HFUpdateCosineSimilarityConverter(cConfig);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to update cosine similarity converter with error code: " + std::to_string(result));
+    }
+  }
+
+  SimilarityConverterConfig HybridInspireFace::getCosineSimilarityConverter()
+  {
+    ::HFSimilarityConverterConfig cConfig;
+    HResult result = HFGetCosineSimilarityConverter(&cConfig);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to get cosine similarity converter with error code: " + std::to_string(result));
+    }
+
+    // Convert C API config to our config
+    SimilarityConverterConfig config;
+    config.threshold = cConfig.threshold;
+    config.middleScore = cConfig.middleScore;
+    config.steepness = cConfig.steepness;
+    config.outputMin = cConfig.outputMin;
+    config.outputMax = cConfig.outputMax;
+    return config;
+  }
+
+  double HybridInspireFace::featureHubGetFaceCount()
+  {
+    HInt32 count = 0;
+    HResult result = HFFeatureHubGetFaceCount(&count);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to get face count with error code: " + std::to_string(result));
+    }
+    return static_cast<double>(count);
+  }
+
+  std::vector<double> HybridInspireFace::featureHubGetExistingIds()
+  {
+    HFFeatureHubExistingIds ids = {};
+    HResult result = HFFeatureHubGetExistingIds(&ids);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to get existing ids with error code: " + std::to_string(result));
+    }
+
+    std::vector<double> idVector;
+    if (ids.size > 0 && ids.ids != nullptr)
+    {
+      idVector.reserve(ids.size);
+      for (int i = 0; i < ids.size; i++)
+      {
+        idVector.push_back(static_cast<double>(ids.ids[i]));
+      }
+    }
+
+    return idVector;
+  }
+
+  void HybridInspireFace::featureHubDataDisable()
+  {
+    HResult result = HFFeatureHubDataDisable();
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to disable feature hub with error code: " + std::to_string(result));
+    }
+  }
+
   double HybridInspireFace::faceComparison(const std::vector<double> &feature1, const std::vector<double> &feature2)
   {
     // Convert std::vector<double> to HFFaceFeature for the first feature
@@ -432,6 +617,94 @@ namespace margelo::nitro::nitroinspireface
 
     // Return the comparison result
     return static_cast<double>(result_value);
+  }
+
+  void HybridInspireFace::setExpansiveHardwareRockchipDmaHeapPath(const std::string &path)
+  {
+    HResult result = HFSetExpansiveHardwareRockchipDmaHeapPath(path.c_str());
+    if (result != HSUCCEED)
+    {
+      Logger::log(LogLevel::Error, TAG, "Failed to set rockchip dma heap path with error code: %ld", result);
+      throw std::runtime_error("Failed to set rockchip dma heap path");
+    }
+  }
+
+  std::string HybridInspireFace::queryExpansiveHardwareRockchipDmaHeapPath()
+  {
+    char path[256];
+    HResult result = HFQueryExpansiveHardwareRockchipDmaHeapPath(path);
+    if (result != HSUCCEED)
+    {
+      Logger::log(LogLevel::Error, TAG, "Failed to query rockchip dma heap path with error code: %ld", result);
+      throw std::runtime_error("Failed to query rockchip dma heap path");
+    }
+    return std::string(path);
+  }
+
+  void HybridInspireFace::setAppleCoreMLInferenceMode(AppleCoreMLInferenceMode mode)
+  {
+    HResult result = HFSetAppleCoreMLInferenceMode(static_cast<HFAppleCoreMLInferenceMode>(mode));
+    if (result != HSUCCEED)
+    {
+      Logger::log(LogLevel::Error, TAG, "Failed to set Apple CoreML inference mode with error code: %ld", result);
+      throw std::runtime_error("Failed to set Apple CoreML inference mode");
+    }
+  }
+
+  void HybridInspireFace::setCudaDeviceId(double deviceId)
+  {
+    HResult result = HFSetCudaDeviceId(static_cast<int32_t>(deviceId));
+    if (result != HSUCCEED)
+    {
+      Logger::log(LogLevel::Error, TAG, "Failed to set CUDA device ID with error code: %ld", result);
+      throw std::runtime_error("Failed to set CUDA device ID");
+    }
+  }
+
+  double HybridInspireFace::getCudaDeviceId()
+  {
+    int32_t deviceId;
+    HResult result = HFGetCudaDeviceId(&deviceId);
+    if (result != HSUCCEED)
+    {
+      Logger::log(LogLevel::Error, TAG, "Failed to get CUDA device ID with error code: %ld", result);
+      throw std::runtime_error("Failed to get CUDA device ID");
+    }
+    return static_cast<double>(deviceId);
+  }
+
+  void HybridInspireFace::printCudaDeviceInfo()
+  {
+    HResult result = HFPrintCudaDeviceInfo();
+    if (result != HSUCCEED)
+    {
+      Logger::log(LogLevel::Error, TAG, "Failed to print CUDA device info with error code: %ld", result);
+      throw std::runtime_error("Failed to print CUDA device info");
+    }
+  }
+
+  double HybridInspireFace::getNumCudaDevices()
+  {
+    int32_t numDevices;
+    HResult result = HFGetNumCudaDevices(&numDevices);
+    if (result != HSUCCEED)
+    {
+      Logger::log(LogLevel::Error, TAG, "Failed to get number of CUDA devices with error code: %ld", result);
+      throw std::runtime_error("Failed to get number of CUDA devices");
+    }
+    return static_cast<double>(numDevices);
+  }
+
+  bool HybridInspireFace::checkCudaDeviceSupport()
+  {
+    int32_t isSupported = 0;
+    HResult result = HFCheckCudaDeviceSupport(&isSupported);
+    if (result != HSUCCEED)
+    {
+      Logger::log(LogLevel::Error, TAG, "Failed to check CUDA device support with error code: %ld", result);
+      throw std::runtime_error("Failed to check CUDA device support");
+    }
+    return isSupported != 0;
   }
 
 } // namespace margelo::nitro::nitroinspireface
