@@ -41,8 +41,8 @@ namespace margelo::nitro::nitroinspireface
     try
     {
       // Get base directory and construct destination path
-      const std::string baseDirectory = assetManager->getBaseDirectory();
-      const std::string destPath = baseDirectory + "/" + path;
+      const std::string filesDirectory = assetManager->getFilesDirectory();
+      const std::string destPath = filesDirectory + "/" + path;
 
       // Copy asset file
       if (!assetManager->copyAssetToFile(path, destPath))
@@ -71,8 +71,8 @@ namespace margelo::nitro::nitroinspireface
 
   bool HybridInspireFace::featureHubDataEnable(const FeatureHubConfiguration &config)
   {
-    const std::string baseDirectory = assetManager->getBaseDirectory();
-    const std::string destPath = baseDirectory + "/" + config.persistenceDbPath;
+    const std::string databasesDirectory = assetManager->getDatabasesDirectory();
+    const std::string destPath = databasesDirectory + "/" + config.persistenceDbPath;
 
     HFFeatureHubConfiguration hfConfig;
     hfConfig.searchMode = static_cast<HFSearchMode>(config.searchMode);

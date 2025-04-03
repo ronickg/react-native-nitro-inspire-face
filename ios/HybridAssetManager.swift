@@ -7,11 +7,20 @@ public class HybridAssetManager: HybridAssetManagerSpec {
         super.init()
     }
 
-   public func getBaseDirectory() -> String {
+   public func getFilesDirectory() -> String {
         guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
             fatalError("Application documents directory is unavailable")
         }
         return documentsDirectory.path
+    }
+
+    public func getDatabasesDirectory() -> String {
+        let fileManager = FileManager.default
+        guard let libraryDirectory = fileManager.urls(for: .libraryDirectory, in: .userDomainMask).first else {
+            fatalError("Application library directory is unavailable")
+        }
+
+        return libraryDirectory.path
     }
 
     public func copyAssetToFile(assetPath: String, filePath: String) -> Bool {

@@ -9,10 +9,20 @@ import java.io.IOException
 
 @DoNotStrip
 class HybridAssetManager : HybridAssetManagerSpec() {
-  override fun getBaseDirectory(): String {
+  override fun getFilesDirectory(): String {
     val context = NitroModules.applicationContext
       ?: throw Error("Application context is unavailable")
     return context.getFilesDir().getAbsolutePath()
+  }
+
+  override fun getDatabasesDirectory(): String {
+    val context = NitroModules.applicationContext
+      ?: throw Error("Application context is unavailable")
+    val databasesDir = File(context.getDataDir().getAbsolutePath() + "/databases")
+    if (!databasesDir.exists()) {
+      databasesDir.mkdirs()
+    }
+    return databasesDir.absolutePath
   }
 
   override fun copyAssetToFile(assetPath: String, filePath: String): Boolean {

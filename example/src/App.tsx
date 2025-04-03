@@ -13,17 +13,18 @@ import {
 import { useEffect } from 'react';
 
 InspireFace.featureHubDataEnable({
-  enablePersistence: false,
-  persistenceDbPath: 'fdb.db',
+  enablePersistence: true,
+  persistenceDbPath: 'bob.db',
   searchThreshold: 0.42,
   searchMode: SearchMode.EXHAUSTIVE,
   primaryKeyMode: PrimaryKeyMode.AUTO_INCREMENT,
 });
 InspireFace.featureHubFaceSearchThresholdSetting(0.42);
 InspireFace.launch('Pikachu');
+
 AssetManager.copyAssetToFile(
   'kun.jpg',
-  `${AssetManager.getBaseDirectory()}/kun.jpg`
+  `${AssetManager.getFilesDirectory()}/kun.jpg`
 );
 
 export default function App() {
@@ -51,19 +52,16 @@ export default function App() {
         for (let j = 0; j < 1; j++) {
           const bitmap = InspireFace.createImageBitmapFromFilePath(
             3,
-            `${AssetManager.getBaseDirectory()}/kun.jpg`
+            `${AssetManager.getFilesDirectory()}/kun.jpg`
           );
           const imageStream = InspireFace.createImageStreamFromBitmap(
             bitmap,
             CameraRotation.ROTATION_0
           );
-          // imageStream.writeImageToFile(
-          //   RNFS.DocumentDirectoryPath + '/kun1.jpg'
-          // );
           const multipleFaceData = session.executeFaceTrack(imageStream);
-          //Works till here -----
           console.log('multipleFaceData', multipleFaceData.length);
           if (multipleFaceData.length > 0 && multipleFaceData[0]) {
+            console.log(multipleFaceData[0].rect);
             const lmk = InspireFace.getFaceDenseLandmarkFromFaceToken(
               multipleFaceData[0].token
             );
