@@ -1,7 +1,7 @@
 {
   "name": "react-native-nitro-inspire-face",
-  "version": "0.1.0",
-  "description": "bob",
+  "version": "0.0.1",
+  "description": "A React Native library providing face detection, recognition, and analysis capabilities using the InspireFace SDK and NitroModules.",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",
@@ -46,7 +46,7 @@
     "type": "git",
     "url": "git+https://github.com/ronickg/react-native-nitro-inspire-face.git"
   },
-  "author": "BubbleTrouble14 <ronald.goedeke@outlook.com> (https://github.com/ronickg)",
+  "author": "Ronald Goedeke <ronald.goedeke@outlook.com> (https://github.com/ronickg)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ronickg/react-native-nitro-inspire-face/issues"
