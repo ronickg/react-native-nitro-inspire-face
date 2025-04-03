@@ -1,5 +1,4 @@
 import { StyleSheet, View } from 'react-native';
-import RNFS from 'react-native-fs';
 import {
   AssetManager,
   CameraRotation,
@@ -14,14 +13,14 @@ import {
 import { useEffect } from 'react';
 
 InspireFace.featureHubDataEnable({
-  enablePersistence: true,
+  enablePersistence: false,
   persistenceDbPath: 'fdb.db',
   searchThreshold: 0.42,
   searchMode: SearchMode.EXHAUSTIVE,
   primaryKeyMode: PrimaryKeyMode.AUTO_INCREMENT,
 });
 InspireFace.featureHubFaceSearchThresholdSetting(0.42);
-InspireFace.launch('Megatron');
+InspireFace.launch('Pikachu');
 AssetManager.copyAssetToFile(
   'kun.jpg',
   `${AssetManager.getBaseDirectory()}/kun.jpg`
@@ -29,7 +28,7 @@ AssetManager.copyAssetToFile(
 
 export default function App() {
   useEffect(() => {
-    const initFaceDetection = async () => {
+    const initFaceDetection = () => {
       try {
         const session = InspireFace.createSession(
           {
@@ -49,10 +48,10 @@ export default function App() {
         session.setFaceDetectThreshold(0.5);
         session.setFilterMinimumFacePixelSize(0);
 
-        for (let j = 0; j < 10; j++) {
+        for (let j = 0; j < 1; j++) {
           const bitmap = InspireFace.createImageBitmapFromFilePath(
             3,
-            RNFS.DocumentDirectoryPath + '/kun.jpg'
+            `${AssetManager.getBaseDirectory()}/kun.jpg`
           );
           const imageStream = InspireFace.createImageStreamFromBitmap(
             bitmap,
@@ -208,115 +207,3 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 });
-
-// for (let i = 0; i < 10; i++) {
-//   const result = InspireFace.featureHubFaceInsert({
-//     id: -1,
-//     feature,
-//   });
-//   console.log('result', result);
-// }
-// console.log('Feature size: ', feature.length);
-// const searched = InspireFace.featureHubFaceSearch(feature);
-// if (searched) {
-//   console.log(
-//     'searched',
-//     searched.id,
-//     'confidence',
-//     searched.confidence
-//   );
-// }
-// const topKResults = InspireFace.featureHubFaceSearchTopK(
-//   feature,
-//   10
-// );
-// console.log('topKResults', topKResults.length);
-// topKResults.forEach((result) => {
-//   console.log(
-//     'TopK id: ',
-//     result.id,
-//     'Confidence: ',
-//     result.confidence
-//   );
-// });
-// const newFeature: FaceFeature = new Array(
-//   InspireFace.getFeatureLength()
-// ).fill(0);
-
-// const identity: FaceFeatureIdentity = {
-//   id: 8,
-//   feature: newFeature,
-// };
-// const updateSuccess = InspireFace.featureHubFaceUpdate(identity);
-// if (updateSuccess) {
-//   console.log('Update feature success: ' + 8);
-// } else {
-//   console.log('Update feature failed: ' + 8);
-// }
-// const removeSuccess = InspireFace.featureHubFaceRemove(4);
-// if (removeSuccess) {
-//   console.log('Remove feature success: ' + 4);
-// } else {
-//   console.log('Remove feature failed: ' + 4);
-// }
-// const topkAgn = InspireFace.featureHubFaceSearchTopK(feature, 10);
-// topkAgn.forEach((result) => {
-//   console.log(
-//     'Agn TopK id:',
-//     result.id,
-//     'Confidence: ',
-//     result.confidence
-//   );
-// });
-// const start = performance.now();
-// let queryIdentity = InspireFace.featureHubGetFaceIdentity(4);
-// if (queryIdentity) {
-//   console.log('Query identity: ', queryIdentity.id);
-// } else {
-//   console.log('Query identity failed');
-// }
-// queryIdentity = InspireFace.featureHubGetFaceIdentity(2);
-// if (queryIdentity) {
-//   console.log('strFt', queryIdentity.feature.length);
-//   console.log('query id: ', queryIdentity.id);
-//   const comp = InspireFace.faceComparison(
-//     queryIdentity.feature,
-//     feature
-//   );
-//   console.log('comp', comp);
-// } else {
-//   console.log('Query identity failed');
-// }
-// const pipelineNeedParam: SessionCustomParameter = {
-//   enableFaceQuality: true,
-//   enableLiveness: true,
-//   enableMaskDetect: true,
-//   enableFaceAttribute: true,
-//   enableInteractionLiveness: true,
-// };
-// const succPipe = session.multipleFacePipelineProcess(
-//   imageStream,
-//   multipleFaceData,
-//   pipelineNeedParam
-// );
-// if (succPipe) {
-//   console.log('pipeline success');
-//   const rgbLivenessConfidence = session.getRGBLivenessConfidence();
-//   console.log('rgbLivenessConfidence', rgbLivenessConfidence);
-//   const faceQualityConfidence = session.getFaceQualityConfidence();
-//   console.log('faceQualityConfidence', faceQualityConfidence);
-//   const faceMaskConfidence = session.getFaceMaskConfidence();
-//   console.log('faceMaskConfidence', faceMaskConfidence);
-//   const faceInteractionState = session.getFaceInteractionState();
-//   console.log('faceInteractionState', faceInteractionState);
-//   const faceInteractionActionsResult =
-//     session.getFaceInteractionActionsResult();
-//   console.log(
-//     'faceInteractionActionsResult',
-//     faceInteractionActionsResult
-//   );
-//   const faceAttributeResult = session.getFaceAttributeResult();
-//   console.log('faceAttributeResult', faceAttributeResult);
-// }
-// const end = performance.now();
-// console.log(`Time taken: ${end - start} milliseconds`);
