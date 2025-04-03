@@ -38,7 +38,7 @@ Download the model packages from the [InspireFace Releases](https://github.com/H
 
 ### Expo Projects
 
-For Expo projects, configure the model in your `app.json` or `app.config.js`:
+For Expo projects add the model package into your root directory, configure the model package that is loaded in your `app.json` or `app.config.js`:
 
 ```json
 {
