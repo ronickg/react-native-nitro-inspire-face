@@ -1,6 +1,6 @@
 {
   "name": "react-native-nitro-inspire-face",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "A React Native library providing face detection, recognition, and analysis capabilities using the InspireFace SDK and NitroModules.",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
