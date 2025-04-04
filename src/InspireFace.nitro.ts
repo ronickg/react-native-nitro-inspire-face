@@ -256,4 +256,16 @@ export interface InspireFace
    * Check if CUDA device support is available.
    */
   checkCudaDeviceSupport(): boolean;
+
+  /**
+   * Convert a base64 string to an ArrayBuffer.
+   * @param base64 Base64 string to convert
+   */
+  fromBase64(base64: string): ArrayBuffer;
+
+  /**
+   * Convert an ArrayBuffer to a base64 string.
+   * @param buffer ArrayBuffer to convert
+   */
+  toBase64(buffer: ArrayBuffer): string;
 }

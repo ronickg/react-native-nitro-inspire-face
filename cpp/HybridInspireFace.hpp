@@ -37,6 +37,8 @@ namespace margelo::nitro::nitroinspireface
 
   private:
     std::shared_ptr<HybridAssetManagerSpec> assetManager;
+    std::string base64_encode(const unsigned char *data, size_t len);
+    std::vector<unsigned char> base64_decode(const std::string &encoded);
 
   public:
     std::string getVersion() override;
@@ -81,6 +83,8 @@ namespace margelo::nitro::nitroinspireface
     void printCudaDeviceInfo() override;
     double getNumCudaDevices() override;
     bool checkCudaDeviceSupport() override;
+    std::shared_ptr<ArrayBuffer> fromBase64(const std::string &base64) override;
+    std::string toBase64(const std::shared_ptr<ArrayBuffer> &buffer) override;
   };
 
 } // namespace margelo::nitro::nitroinspireface

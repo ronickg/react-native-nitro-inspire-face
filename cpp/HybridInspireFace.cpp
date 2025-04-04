@@ -792,4 +792,76 @@ namespace margelo::nitro::nitroinspireface
     return isSupported != 0;
   }
 
+  std::shared_ptr<ArrayBuffer> HybridInspireFace::fromBase64(const std::string &base64)
+  {
+    std::vector<unsigned char> decoded = base64_decode(base64);
+    if (decoded.empty())
+    {
+      throw std::runtime_error("Failed to decode base64 string");
+    }
+    return ArrayBuffer::copy(decoded.data(), decoded.size());
+  }
+
+  std::string HybridInspireFace::toBase64(const std::shared_ptr<ArrayBuffer> &buffer)
+  {
+    if (!buffer || buffer->size() == 0)
+    {
+      throw std::runtime_error("Invalid buffer");
+    }
+    return base64_encode(reinterpret_cast<const unsigned char *>(buffer->data()), buffer->size());
+  }
+
+  // Add these helper functions to FSDKApi class
+  std::string HybridInspireFace::base64_encode(const unsigned char *data, size_t len)
+  {
+    static const char base64_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+    std::string ret;
+    ret.reserve(((len + 2) / 3) * 4);
+
+    for (size_t i = 0; i < len; i += 3)
+    {
+      unsigned char b3[3] = {0};
+      for (size_t j = 0; j < 3; j++)
+      {
+        if (i + j < len)
+          b3[j] = data[i + j];
+      }
+
+      ret.push_back(base64_chars[(b3[0] & 0xfc) >> 2]);
+      ret.push_back(base64_chars[((b3[0] & 0x03) << 4) + ((b3[1] & 0xf0) >> 4)]);
+      ret.push_back(i + 1 < len ? base64_chars[((b3[1] & 0x0f) << 2) + ((b3[2] & 0xc0) >> 6)] : '=');
+      ret.push_back(i + 2 < len ? base64_chars[b3[2] & 0x3f] : '=');
+    }
+
+    return ret;
+  }
+
+  std::vector<unsigned char> HybridInspireFace::base64_decode(const std::string &encoded)
+  {
+    static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+    std::vector<unsigned char> ret;
+    int val = 0, valb = -8;
+
+    for (unsigned char c : encoded)
+    {
+      if (c == '=')
+        break;
+      if (base64_chars.find(c) == std::string::npos)
+        continue;
+
+      val = (val << 6) + base64_chars.find(c);
+      valb += 6;
+
+      if (valb >= 0)
+      {
+        ret.push_back(char((val >> valb) & 0xFF));
+        valb -= 8;
+      }
+    }
+
+    return ret;
+  }
+
 } // namespace margelo::nitro::nitroinspireface
