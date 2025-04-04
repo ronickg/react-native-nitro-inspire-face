@@ -7,7 +7,6 @@ import {
   InspireFace,
   PrimaryKeyMode,
   SearchMode,
-  type FaceFeature,
   type FaceFeatureIdentity,
   type SessionCustomParameter,
 } from 'react-native-nitro-inspire-face';
@@ -80,7 +79,7 @@ export default function App() {
               });
               console.log('result', result);
             }
-            console.log('Feature size: ', feature.length);
+            console.log('Feature size: ', feature.byteLength);
             const searched = InspireFace.featureHubFaceSearch(feature);
             if (searched) {
               console.log(
@@ -103,9 +102,9 @@ export default function App() {
                 result.confidence
               );
             });
-            const newFeature: FaceFeature = new Array(
-              InspireFace.featureLength
-            ).fill(0);
+            // const newFeature = new Array(InspireFace.featureLength).fill(0);
+            const newFeature = new Float32Array(InspireFace.featureLength)
+              .buffer;
 
             const identity: FaceFeatureIdentity = {
               id: 8,
@@ -141,7 +140,7 @@ export default function App() {
             }
             queryIdentity = InspireFace.featureHubGetFaceIdentity(2);
             if (queryIdentity) {
-              console.log('strFt', queryIdentity.feature.length);
+              console.log('strFt', queryIdentity.feature.byteLength);
               console.log('query id: ', queryIdentity.id);
               const comp = InspireFace.faceComparison(
                 queryIdentity.feature,

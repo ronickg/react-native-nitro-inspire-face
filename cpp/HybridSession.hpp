@@ -45,7 +45,7 @@ namespace margelo::nitro::nitroinspireface
     void setTrackModeNumSmoothCacheFrame(double num) override;
     void setTrackModeDetectInterval(double num) override;
     std::vector<FaceData> executeFaceTrack(const std::shared_ptr<HybridImageStreamSpec> &imageStream) override;
-    std::vector<double> extractFaceFeature(const std::shared_ptr<HybridImageStreamSpec> &imageStream, const std::shared_ptr<ArrayBuffer> &faceToken) override;
+    std::shared_ptr<ArrayBuffer> extractFaceFeature(const std::shared_ptr<HybridImageStreamSpec> &imageStream, const std::shared_ptr<ArrayBuffer> &faceToken) override;
     bool multipleFacePipelineProcess(const std::shared_ptr<HybridImageStreamSpec> &imageStream, const std::vector<FaceData> &multipleFaceData, const SessionCustomParameter &parameter) override;
     std::vector<double> getRGBLivenessConfidence() override;
     std::vector<double> getFaceQualityConfidence() override;

@@ -8,7 +8,6 @@ import type { ImageBitmap } from './ImageBitmap.nitro';
 import type { ImageStream } from './ImageStream.nitro';
 import type { Session } from './Session.nitro';
 import type {
-  FaceFeature,
   FaceFeatureIdentity,
   FeatureHubConfiguration,
   Point2f,
@@ -158,7 +157,7 @@ export interface InspireFace
    * Search for a matching face feature.
    * @param feature Feature vector to search for
    */
-  featureHubFaceSearch(feature: FaceFeature): FaceFeatureIdentity | null;
+  featureHubFaceSearch(feature: ArrayBuffer): FaceFeatureIdentity | null;
 
   /**
    * Get a face feature by ID.
@@ -172,7 +171,7 @@ export interface InspireFace
    * @param topK Number of results to return
    */
   featureHubFaceSearchTopK(
-    feature: FaceFeature,
+    feature: ArrayBuffer,
     topK: number
   ): SearchTopKResult[];
 
@@ -191,7 +190,7 @@ export interface InspireFace
    * @param feature1 First feature vector
    * @param feature2 Second feature vector
    */
-  faceComparison(feature1: FaceFeature, feature2: FaceFeature): number;
+  faceComparison(feature1: ArrayBuffer, feature2: ArrayBuffer): number;
 
   /**
    * Get the recommended threshold for cosine similarity.

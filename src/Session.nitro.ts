@@ -3,7 +3,6 @@ import type { ImageStream } from './ImageStream.nitro';
 import type { ImageBitmap } from './ImageBitmap.nitro';
 import type {
   FaceData,
-  FaceFeature,
   FaceInteractionState,
   SessionCustomParameter,
   FaceAttributeResult,
@@ -65,7 +64,7 @@ export interface Session extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
   extractFaceFeature(
     imageStream: ImageStream,
     faceToken: ArrayBuffer
-  ): FaceFeature;
+  ): ArrayBuffer;
 
   /**
    * Get the aligned face image.

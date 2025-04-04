@@ -312,13 +312,29 @@ namespace margelo::nitro::nitroinspireface
 
   double HybridInspireFace::featureHubFaceInsert(const FaceFeatureIdentity &feature)
   {
-    // Convert std::vector<double> to HFFaceFeature
-    HFFaceFeature hfFeature;
-    hfFeature.size = static_cast<HInt32>(feature.feature.size());
+    if (!feature.feature || feature.feature->size() == 0)
+    {
+      throw std::runtime_error("Invalid feature data");
+    }
 
-    // Create a temporary buffer for the HPFloat data
-    std::vector<float> featureFloat(feature.feature.begin(), feature.feature.end());
-    hfFeature.data = reinterpret_cast<HPFloat>(featureFloat.data());
+    // Get expected feature length
+    HInt32 expectedLength = 0;
+    HResult lengthResult = HFGetFeatureLength(&expectedLength);
+    if (lengthResult != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to get feature length");
+    }
+
+    // Validate feature size - feature.feature->size() is in bytes
+    if (feature.feature->size() != expectedLength * sizeof(float))
+    {
+      throw std::runtime_error("Invalid feature size: expected " + std::to_string(expectedLength) + " floats");
+    }
+
+    // Create feature struct
+    HFFaceFeature hfFeature;
+    hfFeature.size = expectedLength; // HFFaceFeature.size is in number of floats
+    hfFeature.data = reinterpret_cast<float *>(feature.feature->data());
 
     // Create feature identity struct
     HFFaceFeatureIdentity identity;
@@ -337,13 +353,29 @@ namespace margelo::nitro::nitroinspireface
 
   bool HybridInspireFace::featureHubFaceUpdate(const FaceFeatureIdentity &feature)
   {
-    // Convert std::vector<double> to HFFaceFeature
-    HFFaceFeature hfFeature;
-    hfFeature.size = static_cast<HInt32>(feature.feature.size());
+    if (!feature.feature || feature.feature->size() == 0)
+    {
+      throw std::runtime_error("Invalid feature data");
+    }
 
-    // Create a temporary buffer for the HPFloat data
-    std::vector<float> featureFloat(feature.feature.begin(), feature.feature.end());
-    hfFeature.data = reinterpret_cast<HPFloat>(featureFloat.data());
+    // Get expected feature length
+    HInt32 expectedLength = 0;
+    HResult lengthResult = HFGetFeatureLength(&expectedLength);
+    if (lengthResult != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to get feature length");
+    }
+
+    // Validate feature size - feature.feature->size() is in bytes
+    if (feature.feature->size() != expectedLength * sizeof(float))
+    {
+      throw std::runtime_error("Invalid feature size: expected " + std::to_string(expectedLength) + " floats");
+    }
+
+    // Create feature struct
+    HFFaceFeature hfFeature;
+    hfFeature.size = expectedLength; // HFFaceFeature.size is in number of floats
+    hfFeature.data = reinterpret_cast<float *>(feature.feature->data());
 
     // Create feature identity struct
     HFFaceFeatureIdentity identity;
@@ -361,94 +393,133 @@ namespace margelo::nitro::nitroinspireface
     return result == HSUCCEED;
   }
 
-  std::optional<FaceFeatureIdentity> HybridInspireFace::featureHubFaceSearch(const std::vector<double> &feature)
+  std::optional<FaceFeatureIdentity> HybridInspireFace::featureHubFaceSearch(const std::shared_ptr<ArrayBuffer> &feature)
   {
-    // Convert vector<double> to HFFaceFeature
+    if (!feature || feature->size() == 0)
+    {
+      throw std::runtime_error("Invalid feature data");
+    }
+
+    // Get expected feature length
+    HInt32 expectedLength = 0;
+    HResult lengthResult = HFGetFeatureLength(&expectedLength);
+    if (lengthResult != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to get feature length");
+    }
+
+    // Validate feature size - feature->size() is in bytes
+    if (feature->size() != expectedLength * sizeof(float))
+    {
+      throw std::runtime_error("Invalid feature size: expected " + std::to_string(expectedLength) + " floats");
+    }
+
+    // Create feature struct
     HFFaceFeature hfFeature;
-    hfFeature.size = static_cast<HInt32>(feature.size());
+    hfFeature.size = expectedLength; // HFFaceFeature.size is in number of floats
+    hfFeature.data = reinterpret_cast<float *>(feature->data());
 
-    // Create a temporary buffer for the HPFloat data
-    std::vector<float> featureFloat(feature.begin(), feature.end());
-    hfFeature.data = reinterpret_cast<HPFloat>(featureFloat.data());
+    // Search for face
+    HFloat confidence;
+    HFFaceFeatureIdentity identity;
+    HResult result = HFFeatureHubFaceSearch(hfFeature, &confidence, &identity);
 
-    // Create variables for search results
-    HFloat confidence = 0;
-    HFFaceFeatureIdentity mostSimilar = {};
-
-    // Search for the face
-    HResult result = HFFeatureHubFaceSearch(hfFeature, &confidence, &mostSimilar);
     if (result != HSUCCEED)
     {
-      // If the ID doesn't exist, return nullopt instead of throwing an exception
       return std::nullopt;
     }
 
-    // Convert HFFaceFeature to std::vector<double>
-    std::vector<double> resultFeature;
-    resultFeature.reserve(mostSimilar.feature->size);
-    for (int i = 0; i < mostSimilar.feature->size; i++)
-    {
-      resultFeature.push_back(static_cast<double>(((float *)mostSimilar.feature->data)[i]));
-    }
+    // Create ArrayBuffer for feature data - multiply by sizeof(float) since we need bytes
+    auto featureBuffer = ArrayBuffer::copy(
+        reinterpret_cast<uint8_t *>(identity.feature->data),
+        identity.feature->size * sizeof(float));
 
-    // Return the FaceFeatureIdentity with confidence
     return FaceFeatureIdentity(
-        static_cast<double>(mostSimilar.id),
-        resultFeature,
-        std::make_optional(static_cast<double>(confidence)));
+        static_cast<double>(identity.id),
+        featureBuffer,
+        static_cast<double>(confidence));
   }
 
   std::optional<FaceFeatureIdentity> HybridInspireFace::featureHubGetFaceIdentity(double id)
   {
     HFFaceFeatureIdentity identity = {};
     HResult result = HFFeatureHubGetFaceIdentity(static_cast<HFaceId>(id), &identity);
-    if (result != HSUCCEED)
+    if (result != HSUCCEED || !identity.feature)
     {
-      // If the ID doesn't exist, return nullopt instead of throwing an exception
+      // If the ID doesn't exist or feature is null, return nullopt instead of throwing an exception
       return std::nullopt;
     }
 
-    // Convert HFFaceFeature to std::vector<double>
-    std::vector<double> resultFeature;
-    resultFeature.reserve(identity.feature->size);
-    for (int i = 0; i < identity.feature->size; i++)
+    // Get expected feature length
+    HInt32 expectedLength = 0;
+    HResult lengthResult = HFGetFeatureLength(&expectedLength);
+    if (lengthResult != HSUCCEED)
     {
-      resultFeature.push_back(static_cast<double>(((float *)identity.feature->data)[i]));
+      throw std::runtime_error("Failed to get feature length");
     }
+
+    // Validate feature size - identity.feature->size is already in number of floats
+    if (identity.feature->size != expectedLength)
+    {
+      throw std::runtime_error("Invalid feature size: expected " + std::to_string(expectedLength) + " floats");
+    }
+
+    // Create ArrayBuffer from feature data - multiply by sizeof(float) to get byte size
+    HFFaceFeature *feature = identity.feature;
+    auto featureBuffer = ArrayBuffer::copy(
+        reinterpret_cast<uint8_t *>(feature->data),
+        feature->size * sizeof(float));
 
     // Return the FaceFeatureIdentity with no confidence (since this is just a retrieval)
     return FaceFeatureIdentity(
         static_cast<double>(identity.id),
-        resultFeature,
+        featureBuffer,
         std::nullopt);
   }
 
-  std::vector<SearchTopKResult> HybridInspireFace::featureHubFaceSearchTopK(const std::vector<double> &feature, double topK)
+  std::vector<SearchTopKResult> HybridInspireFace::featureHubFaceSearchTopK(const std::shared_ptr<ArrayBuffer> &feature, double topK)
   {
-    // Convert vector<double> to HFFaceFeature
-    HFFaceFeature hfFeature;
-    hfFeature.size = static_cast<HInt32>(feature.size());
-
-    // Create a temporary buffer for the HPFloat data
-    std::vector<float> featureFloat(feature.begin(), feature.end());
-    hfFeature.data = reinterpret_cast<HPFloat>(featureFloat.data());
-
-    // Create search results struct
-    HFSearchTopKResults results = {};
-    HResult result = HFFeatureHubFaceSearchTopK(hfFeature, static_cast<HInt32>(topK), &results);
-    if (result != HSUCCEED)
+    if (!feature || feature->size() == 0)
     {
-      throw std::runtime_error("Failed to search top-k faces with error code: " + std::to_string(result));
+      throw std::runtime_error("Invalid feature data");
     }
 
-    // Convert results to vector of SearchTopKResult
+    // Get expected feature length
+    HInt32 expectedLength = 0;
+    HResult lengthResult = HFGetFeatureLength(&expectedLength);
+    if (lengthResult != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to get feature length");
+    }
+
+    // Validate feature size - feature->size() is in bytes
+    if (feature->size() != expectedLength * sizeof(float))
+    {
+      throw std::runtime_error("Invalid feature size: expected " + std::to_string(expectedLength) + " floats");
+    }
+
+    // Create feature struct
+    HFFaceFeature hfFeature;
+    hfFeature.size = expectedLength; // HFFaceFeature.size is in number of floats
+    hfFeature.data = reinterpret_cast<float *>(feature->data());
+
+    // Search for faces
+    HFSearchTopKResults results;
+    HResult result = HFFeatureHubFaceSearchTopK(hfFeature, static_cast<HInt32>(topK), &results);
+
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to search top K faces");
+    }
+
+    // Convert results to vector
     std::vector<SearchTopKResult> searchResults;
     searchResults.reserve(results.size);
     for (int i = 0; i < results.size; i++)
     {
-      searchResults.push_back(SearchTopKResult(
+      searchResults.emplace_back(
           static_cast<double>(results.confidence[i]),
-          static_cast<double>(results.ids[i])));
+          static_cast<double>(results.ids[i]));
     }
 
     return searchResults;
@@ -587,36 +658,50 @@ namespace margelo::nitro::nitroinspireface
     }
   }
 
-  double HybridInspireFace::faceComparison(const std::vector<double> &feature1, const std::vector<double> &feature2)
+  double HybridInspireFace::faceComparison(const std::shared_ptr<ArrayBuffer> &feature1, const std::shared_ptr<ArrayBuffer> &feature2)
   {
-    // Convert std::vector<double> to HFFaceFeature for the first feature
-    HFFaceFeature hfFeature1 = {};
-    hfFeature1.size = static_cast<HInt32>(feature1.size());
-
-    // Create a temporary buffer for the HPFloat data
-    std::vector<float> feature1Float(feature1.begin(), feature1.end());
-    hfFeature1.data = reinterpret_cast<HPFloat>(feature1Float.data());
-
-    // Convert std::vector<double> to HFFaceFeature for the second feature
-    HFFaceFeature hfFeature2 = {};
-    hfFeature2.size = static_cast<HInt32>(feature2.size());
-
-    // Create a temporary buffer for the HPFloat data
-    std::vector<float> feature2Float(feature2.begin(), feature2.end());
-    hfFeature2.data = reinterpret_cast<HPFloat>(feature2Float.data());
-
-    // Create variable to store comparison result
-    HFloat result_value = 0.0f;
-
-    // Perform face comparison
-    HResult result = HFFaceComparison(hfFeature1, hfFeature2, &result_value);
-    if (result != HSUCCEED)
+    if (!feature1 || !feature2 || feature1->size() == 0 || feature2->size() == 0)
     {
-      throw std::runtime_error("Failed to compare faces with error code: " + std::to_string(result));
+      throw std::runtime_error("Invalid feature data");
     }
 
-    // Return the comparison result
-    return static_cast<double>(result_value);
+    // Get expected feature length
+    HInt32 expectedLength = 0;
+    HResult lengthResult = HFGetFeatureLength(&expectedLength);
+    if (lengthResult != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to get feature length");
+    }
+
+    // Validate feature size
+    if (feature1->size() != expectedLength * sizeof(float))
+    {
+      throw std::runtime_error("Invalid feature size: expected " + std::to_string(expectedLength) + " floats");
+    }
+    if (feature2->size() != expectedLength * sizeof(float))
+    {
+      throw std::runtime_error("Invalid feature size: expected " + std::to_string(expectedLength) + " floats");
+    }
+
+    // Create feature structs
+    HFFaceFeature hfFeature1;
+    hfFeature1.size = expectedLength;
+    hfFeature1.data = reinterpret_cast<float *>(feature1->data());
+
+    HFFaceFeature hfFeature2;
+    hfFeature2.size = expectedLength;
+    hfFeature2.data = reinterpret_cast<float *>(feature2->data());
+
+    // Compare features
+    HFloat result;
+    HResult status = HFFaceComparison(hfFeature1, hfFeature2, &result);
+
+    if (status != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to compare faces");
+    }
+
+    return static_cast<double>(result);
   }
 
   void HybridInspireFace::setExpansiveHardwareRockchipDmaHeapPath(const std::string &path)

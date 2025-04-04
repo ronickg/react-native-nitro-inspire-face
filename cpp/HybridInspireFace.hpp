@@ -14,6 +14,7 @@
 #include "HybridAssetManagerSpec.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
 #include <NitroModules/NitroLogger.hpp>
+#include "FaceFeatureIdentity.hpp"
 #include <string>
 #include <memory>
 #include <vector>
@@ -62,12 +63,12 @@ namespace margelo::nitro::nitroinspireface
     double featureHubFaceInsert(const FaceFeatureIdentity &feature) override;
     bool featureHubFaceUpdate(const FaceFeatureIdentity &feature) override;
     bool featureHubFaceRemove(double id) override;
-    std::optional<FaceFeatureIdentity> featureHubFaceSearch(const std::vector<double> &feature) override;
+    std::optional<FaceFeatureIdentity> featureHubFaceSearch(const std::shared_ptr<ArrayBuffer> &feature) override;
     std::optional<FaceFeatureIdentity> featureHubGetFaceIdentity(double id) override;
-    std::vector<SearchTopKResult> featureHubFaceSearchTopK(const std::vector<double> &feature, double topK) override;
+    std::vector<SearchTopKResult> featureHubFaceSearchTopK(const std::shared_ptr<ArrayBuffer> &feature, double topK) override;
     double featureHubGetFaceCount() override;
     std::vector<double> featureHubGetExistingIds() override;
-    double faceComparison(const std::vector<double> &feature1, const std::vector<double> &feature2) override;
+    double faceComparison(const std::shared_ptr<ArrayBuffer> &feature1, const std::shared_ptr<ArrayBuffer> &feature2) override;
     double getRecommendedCosineThreshold() override;
     double cosineSimilarityConvertToPercentage(double similarity) override;
     void updateCosineSimilarityConverter(const SimilarityConverterConfig &config) override;

@@ -126,12 +126,6 @@ export type Color = {
 };
 
 /**
- * Array of numbers representing face feature vector.
- * Used in face recognition and comparison operations.
- */
-export type FaceFeature = number[];
-
-/**
  * Identity information associated with a face feature.
  * Used for face recognition and database management.
  */
@@ -139,7 +133,7 @@ export type FaceFeatureIdentity = {
   /** Unique identifier for the face feature */
   id: number;
   /** Feature vector representing the face */
-  feature: FaceFeature;
+  feature: ArrayBuffer;
   /** Optional confidence score for the feature */
   confidence?: number;
 };

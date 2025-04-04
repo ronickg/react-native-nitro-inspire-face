@@ -204,7 +204,7 @@ namespace margelo::nitro::nitroinspireface
     return faceDataVector;
   }
 
-  std::vector<double> HybridSession::extractFaceFeature(const std::shared_ptr<HybridImageStreamSpec> &imageStream, const std::shared_ptr<ArrayBuffer> &faceToken)
+  std::shared_ptr<ArrayBuffer> HybridSession::extractFaceFeature(const std::shared_ptr<HybridImageStreamSpec> &imageStream, const std::shared_ptr<ArrayBuffer> &faceToken)
   {
     if (!imageStream || !faceToken)
     {
@@ -240,15 +240,26 @@ namespace margelo::nitro::nitroinspireface
       throw std::runtime_error("Invalid feature data returned");
     }
 
-    // Convert the float array to a vector of doubles
-    std::vector<double> featureVector;
-    featureVector.reserve(feature.size);
-    for (int i = 0; i < feature.size; i++)
+    // Get expected feature length
+    HInt32 expectedLength = 0;
+    HResult lengthResult = HFGetFeatureLength(&expectedLength);
+    if (lengthResult != HSUCCEED)
     {
-      featureVector.push_back(static_cast<double>(static_cast<float *>(feature.data)[i]));
+      throw std::runtime_error("Failed to get feature length");
     }
 
-    return featureVector;
+    // Validate feature size
+    if (feature.size != expectedLength)
+    {
+      throw std::runtime_error("Invalid feature size: expected " + std::to_string(expectedLength) + " floats");
+    }
+
+    // Create an ArrayBuffer from the feature data
+    auto featureBuffer = ArrayBuffer::copy(
+        reinterpret_cast<uint8_t *>(feature.data),
+        feature.size * sizeof(float));
+
+    return featureBuffer;
   }
 
   bool HybridSession::multipleFacePipelineProcess(const std::shared_ptr<HybridImageStreamSpec> &imageStream, const std::vector<FaceData> &multipleFaceData, const SessionCustomParameter &parameter)
