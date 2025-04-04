@@ -1,9 +1,9 @@
 import { NitroModules } from 'react-native-nitro-modules';
-import type { InspireFace as NitroInspireFace } from './NitroInspireFace.nitro';
-export * from './NitroInspireFace.nitro';
+import type { InspireFace as NitroInspireFace } from './InspireFace.nitro';
 import type { AssetManager as NitroAssetManager } from './AssetManager.nitro';
+export * from './InspireFace.nitro';
+export * from './enums';
 export * from './types';
-// export const Utils = NitroModules.createHybridObject<NitroUtils>('NitroUtils');
 
 export const InspireFace =
   NitroModules.createHybridObject<NitroInspireFace>('InspireFace');
