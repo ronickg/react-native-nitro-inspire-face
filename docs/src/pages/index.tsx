@@ -33,8 +33,8 @@ function HomepageHeader() {
 export default function Home(): ReactNode {
   return (
     <Layout
-      title=""
-      description="React Native library for face detection, recognition, and analysis powered by InspireFace SDK and built with Nitro Modules"
+      title={'Nitro InspireFace Documentation'}
+      description="A React Native library providing face detection, recognition, and analysis capabilities using powered by InspireFace SDK and built with Nitro Modules."
     >
       <HomepageHeader />
       <main>

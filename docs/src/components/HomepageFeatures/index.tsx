@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import clsx from 'clsx';
 import Heading from '@theme/Heading';
+import Link from '@docusaurus/Link';
 import styles from './styles.module.css';
 
 type FeatureItem = {
@@ -8,12 +9,14 @@ type FeatureItem = {
   // Svg: React.ComponentType<React.ComponentProps<'svg'>>;
   Img?: string;
   description: ReactNode;
+  link?: string;
 };
 
 const FeatureList: FeatureItem[] = [
   {
     title: 'Powered by InspireFace',
     // Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    link: 'https://github.com/HyperInspire/InspireFace',
     Img: require('@site/static/img/bob.png').default,
     description: (
       <>
@@ -25,6 +28,7 @@ const FeatureList: FeatureItem[] = [
   {
     title: 'Built with Nitro Modules',
     Img: require('@site/static/img/nos.png').default,
+    link: 'https://nitro.margelo.com/',
     description: (
       <>
         Built using JSI + C++. Zero bridge overhead, real native performance in
@@ -45,14 +49,16 @@ const FeatureList: FeatureItem[] = [
   },
 ];
 
-function Feature({ title, Img, description }: FeatureItem) {
+function Feature({ title, Img, description, link }: FeatureItem) {
+  const imageContent = Img && (
+    <img src={Img} alt={title} className={styles.featureSvg} />
+  );
+
   return (
     <div className={clsx('col col--4')}>
       <div className="text--center">
         {/* <Svg className={styles.featureSvg} role="img" /> */}
-        {Img && (
-          <img src={Img} alt="NitroInspireFace" className={styles.featureSvg} />
-        )}
+        {link ? <Link to={link}>{imageContent}</Link> : imageContent}
       </div>
       <div className="text--center padding-horiz--md">
         <Heading as="h3">{title}</Heading>
