@@ -31,11 +31,10 @@ function HomepageHeader() {
 }
 
 export default function Home(): ReactNode {
-  const { siteConfig } = useDocusaurusContext();
   return (
     <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />"
+      title=""
+      description="React Native library for face detection, recognition, and analysis powered by InspireFace SDK and built with Nitro Modules"
     >
       <HomepageHeader />
       <main>
