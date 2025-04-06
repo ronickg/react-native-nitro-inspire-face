@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Intro
 
-A React Native library that provides face detection, recognition, and analysis capabilities using the InspireFace SDK. This library is built on top of [InspireFace](https://github.com/HyperInspire/InspireFace), a powerful cross-platform face recognition SDK developed in C/C++. Powered by [NitroModules](https://github.com/mrousavy/nitro).
+A React Native library for face detection, recognition, and analysis, built on top of the [InspireFace](https://github.com/HyperInspire/InspireFace) SDK with [Nitro Modules](https://github.com/mrousavy/nitro) to bring native performance to your React Native face recognition features.
 
 ![Docs Version Dropdown](./img/banner.jpg)
 
