@@ -6,7 +6,8 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'Nitro Inspire Face',
-  tagline: 'Face Detection and Recognition SDK',
+  tagline:
+    'A High-performance Face Detection, Recognition, and Analysis library for React Native',
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
