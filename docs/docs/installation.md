@@ -18,7 +18,7 @@ Install [react-native-nitro-inspire-face](https://www.npmjs.com/package/react-na
 
 <Tabs
 groupId="package-manager"
-defaultValue="npm"
+defaultValue="expo"
 values={[
 {label: 'Expo', value: 'expo'},
 {label: 'NPM', value: 'npm'},
