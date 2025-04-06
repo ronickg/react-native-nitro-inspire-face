@@ -29,6 +29,7 @@
   ],
   "scripts": {
     "example": "yarn workspace react-native-nitro-inspire-face-example",
+    "docs": "yarn workspace react-native-nitro-inspire-face-docs",
     "test": "jest",
     "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
@@ -88,7 +89,8 @@
     "react-native-nitro-modules": "^0.25.2"
   },
   "workspaces": [
-    "example"
+    "example",
+    "docs"
   ],
   "packageManager": "yarn@3.6.1",
   "jest": {

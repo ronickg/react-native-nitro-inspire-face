@@ -1,0 +1,8 @@
+{
+  "label": "API Reference",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "description": "API Reference for the React Native Nitro Inspire Face SDK."
+  }
+}
