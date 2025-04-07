@@ -492,7 +492,7 @@ getFaceQuality(imageStream: ImageStream): number
 Get the face angle information.
 
 ```ts
-getFaceAngle(imageStream: ImageStream): FaceAngle
+getFaceAngle(imageStream: ImageStream): FaceEulerAngle
 ```
 
 #### **Parameters**
@@ -503,7 +503,7 @@ getFaceAngle(imageStream: ImageStream): FaceAngle
 
 #### **Returns**
 
-- [`FaceAngle`](../types/FaceAngle.md) - Face angle information
+- [`FaceEulerAngle`](../types/FaceEulerAngle.md) - Face angle information
 
 ---
 
@@ -523,7 +523,7 @@ getFaceAttribute(imageStream: ImageStream): FaceAttribute
 
 #### **Returns**
 
-- [`FaceAttribute`](../types/FaceAttribute.md) - Face attribute information
+- [`FaceAttributeResult`](../types/FaceAttributeResult.md) - Face attribute information
 
 ---
 
