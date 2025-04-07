@@ -8,10 +8,8 @@ import useBaseUrl from '@docusaurus/useBaseUrl'
 
 This guide demonstrates how to integrate react-native-nitro-inspire-face with [react-native-vision-camera](https://mrousavy.com/react-native-vision-camera/) to perform real-time face detection and landmark tracking. The example also uses:
 
-<div style={{ float: 'right', marginLeft: '20px' }}>
-  <svg xmlns="http://www.w3.org/2000/svg" width="300" height="378">
-    <image href={useBaseUrl("img/vision-camera-example.png")} width="300" height="378" />
-  </svg>
+<div style={{ float: 'right', marginLeft: "10px" }}>
+  <img src={useBaseUrl("img/vision-camera-example.png")} style={{ width: 200, height: 'auto' }} alt="Vision Camera Example" />
 </div>
 
 - [vision-camera-resize-plugin](https://github.com/mrousavy/vision-camera-resize-plugin) to efficiently resize frames for optimal processing performance
