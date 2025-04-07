@@ -512,7 +512,7 @@ getFaceAngle(imageStream: ImageStream): FaceEulerAngle
 Get the face attribute information.
 
 ```ts
-getFaceAttribute(imageStream: ImageStream): FaceAttribute
+getFaceAttribute(imageStream: ImageStream): FaceAttributeResult
 ```
 
 #### **Parameters**
@@ -612,7 +612,7 @@ getFaceQualityFromToken(token: ArrayBuffer): number
 Get the face angle information from token.
 
 ```ts
-getFaceAngleFromToken(token: ArrayBuffer): FaceAngle
+getFaceAngleFromToken(token: ArrayBuffer): FaceEulerAngle
 ```
 
 #### **Parameters**
@@ -623,7 +623,7 @@ getFaceAngleFromToken(token: ArrayBuffer): FaceAngle
 
 #### **Returns**
 
-- [`FaceAngle`](../types/FaceAngle.md) - Face angle information from token
+- [`FaceEulerAngle`](../types/FaceEulerAngle.md) - Face angle information from token
 
 ---
 
@@ -632,7 +632,7 @@ getFaceAngleFromToken(token: ArrayBuffer): FaceAngle
 Get the face attribute information from token.
 
 ```ts
-getFaceAttributeFromToken(token: ArrayBuffer): FaceAttribute
+getFaceAttributeFromToken(token: ArrayBuffer): FaceAttributeResult
 ```
 
 #### **Parameters**
@@ -643,4 +643,4 @@ getFaceAttributeFromToken(token: ArrayBuffer): FaceAttribute
 
 #### **Returns**
 
-- [`FaceAttribute`](../types/FaceAttribute.md) - Face attribute information from token
+- [`FaceAttributeResult`](../types/FaceAttributeResult.md) - Face attribute information from token
