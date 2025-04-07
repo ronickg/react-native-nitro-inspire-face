@@ -71,7 +71,7 @@ function Feature({ title, Img, description, link }: FeatureItem) {
 export default function HomepageFeatures(): ReactNode {
   return (
     <section className={styles.features}>
-      <div className="container">
+      <div className="container padding-top--xl">
         <div className="row">
           {FeatureList.map((props, idx) => (
             <Feature key={idx} {...props} />
