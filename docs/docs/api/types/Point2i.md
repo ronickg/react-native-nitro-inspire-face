@@ -4,7 +4,7 @@ title: Point2i
 
 # Point2i
 
-2D point with integer coordinates.
+2D point with integer coordinates. Used for pixel-precise positioning.
 
 ```typescript
 type Point2i = {
@@ -15,10 +15,7 @@ type Point2i = {
 
 ## Properties
 
-### x
-
-- X-coordinate as an integer for pixel-precise positioning.
-
-### y
-
-- Y-coordinate as an integer for pixel-precise positioning.
+| Property | Type     | Description                |
+| -------- | -------- | -------------------------- |
+| `x`      | `number` | X-coordinate as an integer |
+| `y`      | `number` | Y-coordinate as an integer |

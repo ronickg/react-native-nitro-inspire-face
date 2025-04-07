@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 2
 title: DetectMode
 ---
 
@@ -15,16 +15,10 @@ enum DetectMode {
 }
 ```
 
-## Modes
+## Values
 
-### ALWAYS_DETECT
-
-- Image detection mode that always detects faces, suitable for static images.
-
-### LIGHT_TRACK
-
-- Video detection mode with face tracking, ideal for video streaming and front camera applications.
-
-### TRACK_BY_DETECTION
-
-- Video detection mode with face tracking, designed for high-resolution monitoring and capturing. Requires specific compile-time options to be enabled.
+| Enum                 | Value | Description                                                                                      |
+| -------------------- | ----- | ------------------------------------------------------------------------------------------------ |
+| `ALWAYS_DETECT`      | `0`   | Image detection mode that always detects faces, suitable for static images                       |
+| `LIGHT_TRACK`        | `1`   | Video detection mode with face tracking, ideal for video streaming and front camera applications |
+| `TRACK_BY_DETECTION` | `2`   | Video detection mode with face tracking, designed for high-resolution monitoring and capturing   |

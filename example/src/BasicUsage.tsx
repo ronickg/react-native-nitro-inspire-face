@@ -1,20 +1,3 @@
----
-sidebar_position: 3
----
-
-# Basic Usage
-
-This guide demonstrates how to initialize and use the core features of react-native-nitro-inspire-face.
-
-- Initialize the SDK with a model package
-- Configure face detection settings
-- Process an image for face detection
-- Extract facial features
-- Properly manage resources
-
-Here's a complete example that covers these basic operations:
-
-```ts
 import {
   InspireFace,
   AssetManager,
@@ -82,4 +65,3 @@ const initFaceDetection = () => {
 };
 
 initFaceDetection();
-```

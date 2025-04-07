@@ -4,7 +4,7 @@ title: FaceInteractionState
 
 # FaceInteractionState
 
-State information for face interaction detection.
+State information for face interaction detection. Used to track the state of eyes during interaction.
 
 ```typescript
 type FaceInteractionState = {
@@ -15,10 +15,7 @@ type FaceInteractionState = {
 
 ## Properties
 
-### left
-
-- State of the left eye, ranging from 0 (closed) to 1 (fully open).
-
-### right
-
-- State of the right eye, ranging from 0 (closed) to 1 (fully open).
+| Property | Type     | Description                                            |
+| -------- | -------- | ------------------------------------------------------ |
+| `left`   | `number` | State of the left eye (0-1, where 1 means fully open)  |
+| `right`  | `number` | State of the right eye (0-1, where 1 means fully open) |

@@ -16,7 +16,13 @@ type FaceAttributeResult = {
 
 ## Properties
 
-### ageBracket
+| Property     | Type     | Description                                      |
+| ------------ | -------- | ------------------------------------------------ |
+| `ageBracket` | `number` | Age range prediction (0-8, see table below)      |
+| `gender`     | `number` | Gender prediction (0-1, see table below)         |
+| `race`       | `number` | Race/ethnicity prediction (0-4, see table below) |
+
+### Age Bracket Values
 
 | Value | Age Range   |
 | ----- | ----------- |
@@ -30,14 +36,14 @@ type FaceAttributeResult = {
 | 7     | 60-69 years |
 | 8     | 70+ years   |
 
-### gender
+### Gender Values
 
 | Value | Description |
 | ----- | ----------- |
 | 0     | Female      |
 | 1     | Male        |
 
-### race
+### Race Values
 
 | Value | Description     |
 | ----- | --------------- |

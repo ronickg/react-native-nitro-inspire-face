@@ -4,7 +4,7 @@ title: FaceRect
 
 # FaceRect
 
-Rectangle defining the position and size of a detected face.
+Rectangle representing a face region in an image. Defines the position and size of a detected face.
 
 ```typescript
 type FaceRect = {
@@ -17,18 +17,9 @@ type FaceRect = {
 
 ## Properties
 
-### x
-
-- X-coordinate of the top-left corner of the face rectangle.
-
-### y
-
-- Y-coordinate of the top-left corner of the face rectangle.
-
-### width
-
-- Width of the face rectangle in pixels.
-
-### height
-
-- Height of the face rectangle in pixels.
+| Property | Type     | Description                                          |
+| -------- | -------- | ---------------------------------------------------- |
+| `x`      | `number` | X-coordinate of the top-left corner of the rectangle |
+| `y`      | `number` | Y-coordinate of the top-left corner of the rectangle |
+| `width`  | `number` | Width of the rectangle                               |
+| `height` | `number` | Height of the rectangle                              |

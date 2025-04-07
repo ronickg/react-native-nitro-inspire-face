@@ -18,28 +18,13 @@ enum ImageFormat {
 }
 ```
 
-## Formats
+## Values
 
-### RGB
-
-- Standard RGB color format with 3 channels.
-
-### BGR
-
-- BGR color format (OpenCV Mat default) with 3 channels.
-
-### RGBA
-
-- RGB color format with alpha channel (4 channels).
-
-### BGRA
-
-- BGR color format with alpha channel (4 channels).
-
-### YUV_NV12
-
-- YUV color format with NV12 layout, commonly used in video processing.
-
-### YUV_NV21
-
-- YUV color format with NV21 layout, commonly used in Android camera outputs.
+| Enum       | Value | Description                                                                |
+| ---------- | ----- | -------------------------------------------------------------------------- |
+| `RGB`      | `0`   | Standard RGB color format with 3 channels                                  |
+| `BGR`      | `1`   | BGR color format (OpenCV Mat default) with 3 channels                      |
+| `RGBA`     | `2`   | RGB color format with alpha channel (4 channels)                           |
+| `BGRA`     | `3`   | BGR color format with alpha channel (4 channels)                           |
+| `YUV_NV12` | `4`   | YUV color format with NV12 layout, commonly used in video processing       |
+| `YUV_NV21` | `5`   | YUV color format with NV21 layout, commonly used in Android camera outputs |

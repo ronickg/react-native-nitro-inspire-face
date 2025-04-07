@@ -4,7 +4,7 @@ title: FaceData
 
 # FaceData
 
-Comprehensive data structure for a detected face.
+Comprehensive data structure for a detected face. Contains information about the face's position, tracking, confidence, orientation, and feature token.
 
 ```typescript
 type FaceData = {
@@ -18,22 +18,10 @@ type FaceData = {
 
 ## Properties
 
-### rect
-
-- Bounding rectangle of the detected face. See [FaceRect](./FaceRect.md) for details.
-
-### trackId
-
-- Unique identifier for tracking this face across video frames.
-
-### detConfidence
-
-- Detection confidence score between 0 and 1.
-
-### angle
-
-- 3D orientation of the face. See [FaceEulerAngle](./FaceEulerAngle.md) for details.
-
-### token
-
-- Binary data containing face feature information for recognition.
+| Property        | Type                                    | Description                                           |
+| --------------- | --------------------------------------- | ----------------------------------------------------- |
+| `rect`          | [`FaceRect`](./FaceRect.md)             | Rectangle defining the face region                    |
+| `trackId`       | `number`                                | Unique identifier for tracking the face across frames |
+| `detConfidence` | `number`                                | Confidence score of the face detection                |
+| `angle`         | [`FaceEulerAngle`](./FaceEulerAngle.md) | 3D orientation of the face                            |
+| `token`         | `ArrayBuffer`                           | Binary token containing face feature data             |

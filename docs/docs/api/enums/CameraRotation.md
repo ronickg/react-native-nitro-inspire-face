@@ -1,5 +1,5 @@
 ---
-sidebar_position: 7
+sidebar_position: 6
 title: CameraRotation
 ---
 
@@ -16,20 +16,11 @@ enum CameraRotation {
 }
 ```
 
-## Modes
+## Values
 
-### ROTATION_0
-
-- No rotation applied to the camera feed (0 degrees).
-
-### ROTATION_90
-
-- 90-degree clockwise rotation of the camera feed.
-
-### ROTATION_180
-
-- 180-degree rotation of the camera feed.
-
-### ROTATION_270
-
-- 270-degree clockwise rotation of the camera feed.
+| Value          | Value | Description                                        |
+| -------------- | ----- | -------------------------------------------------- |
+| `ROTATION_0`   | `0`   | No rotation applied to the camera feed (0 degrees) |
+| `ROTATION_90`  | `1`   | 90-degree clockwise rotation of the camera feed    |
+| `ROTATION_180` | `2`   | 180-degree rotation of the camera feed             |
+| `ROTATION_270` | `3`   | 270-degree clockwise rotation of the camera feed   |

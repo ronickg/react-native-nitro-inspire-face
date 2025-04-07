@@ -1,5 +1,5 @@
 ---
-sidebar_position: 5
+sidebar_position: 3
 title: PrimaryKeyMode
 ---
 
@@ -14,12 +14,9 @@ enum PrimaryKeyMode {
 }
 ```
 
-## Modes
+## Values
 
-### AUTO_INCREMENT
-
-- Automatically generates incremental IDs for face features. Recommended for most use cases.
-
-### MANUAL_INPUT
-
-- Allows manual specification of IDs for face features. Useful when integrating with existing ID systems.
+| Enum             | Value | Description                                                                                            |
+| ---------------- | ----- | ------------------------------------------------------------------------------------------------------ |
+| `AUTO_INCREMENT` | `0`   | Automatically generates incremental IDs for face features. Recommended for most use cases              |
+| `MANUAL_INPUT`   | `1`   | Allows manual specification of IDs for face features. Useful when integrating with existing ID systems |

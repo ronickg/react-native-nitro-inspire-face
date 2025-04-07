@@ -4,7 +4,7 @@ title: SearchTopKResult
 
 # SearchTopKResult
 
-Result of a top-K face search operation.
+Result of a top-K search operation in face recognition. Contains the confidence score and ID of a matched face.
 
 ```typescript
 type SearchTopKResult = {
@@ -15,10 +15,7 @@ type SearchTopKResult = {
 
 ## Properties
 
-### confidence
-
-- Similarity confidence score between the search feature and matched face.
-
-### id
-
-- Unique identifier of the matched face in the database.
+| Property     | Type     | Description                   |
+| ------------ | -------- | ----------------------------- |
+| `confidence` | `number` | Confidence score of the match |
+| `id`         | `number` | ID of the matched face        |

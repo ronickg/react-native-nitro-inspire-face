@@ -4,7 +4,7 @@ title: FaceInteractionsAction
 
 # FaceInteractionsAction
 
-Detection results for various face interaction actions.
+Detection results for various face interaction actions. Used to track different types of facial movements and gestures.
 
 ```typescript
 type FaceInteractionsAction = {
@@ -18,22 +18,10 @@ type FaceInteractionsAction = {
 
 ## Properties
 
-### normal
-
-- Detection score for normal face state (neutral expression).
-
-### shake
-
-- Detection score for head shake action (left-right movement).
-
-### jawOpen
-
-- Detection score for jaw opening action (mouth opening).
-
-### headRaise
-
-- Detection score for head raising action (looking up).
-
-### blink
-
-- Detection score for eye blinking action.
+| Property    | Type     | Description                             |
+| ----------- | -------- | --------------------------------------- |
+| `normal`    | `number` | Detection score for normal face state   |
+| `shake`     | `number` | Detection score for head shake action   |
+| `jawOpen`   | `number` | Detection score for jaw opening action  |
+| `headRaise` | `number` | Detection score for head raising action |
+| `blink`     | `number` | Detection score for eye blinking action |

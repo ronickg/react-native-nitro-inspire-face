@@ -7,170 +7,201 @@ title: Session
 
 Interface for managing face recognition sessions. Provides functionality for face tracking, feature extraction, and analysis.
 
-```typescript
-interface Session {
-  setTrackPreviewSize(size: number): void;
-  setFaceDetectThreshold(threshold: number): void;
-  setFilterMinimumFacePixelSize(size: number): void;
-  setTrackModeSmoothRatio(ratio: number): void;
-  setTrackModeNumSmoothCacheFrame(num: number): void;
-  setTrackModeDetectInterval(num: number): void;
-  executeFaceTrack(imageStream: ImageStream): FaceData[];
-  extractFaceFeature(
-    imageStream: ImageStream,
-    faceToken: ArrayBuffer
-  ): ArrayBuffer;
-  getFaceAlignmentImage(
-    imageStream: ImageStream,
-    faceToken: ArrayBuffer
-  ): ImageBitmap;
-  multipleFacePipelineProcess(
-    imageStream: ImageStream,
-    multipleFaceData: FaceData[],
-    parameter: SessionCustomParameter
-  ): boolean;
-  getRGBLivenessConfidence(): number[];
-  getFaceQualityConfidence(): number[];
-  getFaceMaskConfidence(): number[];
-  getFaceInteractionState(): FaceInteractionState[];
-  getFaceInteractionActionsResult(): FaceInteractionsAction[];
-  getFaceAttributeResult(): FaceAttributeResult[];
-}
-```
-
 ## Methods
 
-### setTrackPreviewSize
+### `setTrackPreviewSize`
 
-```typescript
+Set the track preview size in the session.
+
+```ts
 setTrackPreviewSize(size: number): void
 ```
 
-Set the preview size for face tracking. Default preview size is 192 pixels.
+#### **Parameters**
 
-**Parameters:**
+| Name   | Type     | Description                                            |
+| ------ | -------- | ------------------------------------------------------ |
+| `size` | `number` | Size in pixels for tracking preview. Defaults to `192` |
 
-- `size`: Size in pixels for tracking preview
+#### **Returns**
 
-### setFaceDetectThreshold
+- `void`
 
-```typescript
+---
+
+### `setFaceDetectThreshold`
+
+Set the face detect threshold in the session.
+
+```ts
 setFaceDetectThreshold(threshold: number): void
 ```
 
-Set the threshold for face detection. Controls the sensitivity of face detection.
+#### **Parameters**
 
-**Parameters:**
+| Name        | Type     | Description                                   |
+| ----------- | -------- | --------------------------------------------- |
+| `threshold` | `number` | Detection threshold value between `0` and `1` |
 
-- `threshold`: Detection threshold value
+#### **Returns**
 
-### setFilterMinimumFacePixelSize
+- `void`
 
-```typescript
+---
+
+### `setFilterMinimumFacePixelSize`
+
+Set the minimum number of face pixels that the face detector can capture, and people below this number will be filtered.
+
+```ts
 setFilterMinimumFacePixelSize(size: number): void
 ```
 
-Set the minimum face size in pixels that the face detector can capture. Faces below this size will be filtered out.
+#### **Parameters**
 
-**Parameters:**
+| Name   | Type     | Description                             |
+| ------ | -------- | --------------------------------------- |
+| `size` | `number` | Minimum size in pixels. Defaults to `0` |
 
-- `size`: Minimum size in pixels (default is 0)
+#### **Returns**
 
-### setTrackModeSmoothRatio
+- `void`
 
-```typescript
+---
+
+### `setTrackModeSmoothRatio`
+
+Set the track mode smooth ratio in the session.
+
+```ts
 setTrackModeSmoothRatio(ratio: number): void
 ```
 
-Set the smoothing ratio for face tracking. Default value is 0.05.
+#### **Parameters**
 
-**Parameters:**
+| Name    | Type     | Description                                                   |
+| ------- | -------- | ------------------------------------------------------------- |
+| `ratio` | `number` | Smoothing ratio value between `0` and `1`. Defaults to `0.05` |
 
-- `ratio`: Smoothing ratio value between 0 and 1
+#### **Returns**
 
-### setTrackModeNumSmoothCacheFrame
+- `void`
 
-```typescript
+---
+
+### `setTrackModeNumSmoothCacheFrame`
+
+Set the track mode num smooth cache frame in the session.
+
+```ts
 setTrackModeNumSmoothCacheFrame(num: number): void
 ```
 
-Set the number of frames used for smoothing in tracking mode. Default value is 5.
+#### **Parameters**
 
-**Parameters:**
+| Name  | Type     | Description                                              |
+| ----- | -------- | -------------------------------------------------------- |
+| `num` | `number` | Number of frames to cache for smoothing. Defaults to `5` |
 
-- `num`: Number of frames to cache for smoothing
+#### **Returns**
 
-### setTrackModeDetectInterval
+- `void`
 
-```typescript
+---
+
+### `setTrackModeDetectInterval`
+
+Set the track model detect interval in the session.
+
+```ts
 setTrackModeDetectInterval(num: number): void
 ```
 
-Set the detection interval for tracking mode. Default value is 20.
+#### **Parameters**
 
-**Parameters:**
+| Name  | Type     | Description                                         |
+| ----- | -------- | --------------------------------------------------- |
+| `num` | `number` | Interval value between detections. Defaults to `20` |
 
-- `num`: Interval value between detections
+#### **Returns**
 
-### executeFaceTrack
+- `void`
 
-```typescript
+---
+
+### `executeFaceTrack`
+
+Run face tracking in the session.
+
+```ts
 executeFaceTrack(imageStream: ImageStream): FaceData[]
 ```
 
-Execute face tracking on an image stream.
+#### **Parameters**
 
-**Parameters:**
+| Name          | Type                                       | Description                   |
+| ------------- | ------------------------------------------ | ----------------------------- |
+| `imageStream` | [`ImageStream`](../interfaces/ImageStream) | Input image stream to process |
 
-- `imageStream`: Input image stream to process
+#### **Returns**
 
-**Returns:**
+- [`FaceData[]`](../types/FaceData) – Array of detected face data objects.
 
-- Array of detected face data including position, tracking ID, and features
+---
 
-### extractFaceFeature
+### `extractFaceFeature`
 
-```typescript
+Extract a face feature from a given face.
+
+```ts
 extractFaceFeature(
   imageStream: ImageStream,
   faceToken: ArrayBuffer
-): FaceFeature
+): ArrayBuffer
 ```
 
-Extract face features from a detected face.
+#### **Parameters**
 
-**Parameters:**
+| Name          | Type                                       | Description                        |
+| ------------- | ------------------------------------------ | ---------------------------------- |
+| `imageStream` | [`ImageStream`](../interfaces/ImageStream) | Input image stream to process      |
+| `faceToken`   | `ArrayBuffer`                              | Face token from previous detection |
 
-- `imageStream`: Input image stream
-- `faceToken`: Face token data from face detection
+#### **Returns**
 
-**Returns:**
+- `ArrayBuffer` – Face feature vector representing the detected face.
 
-- Extracted face feature vector
+---
 
-### getFaceAlignmentImage
+### `getFaceAlignmentImage`
 
-```typescript
+Get the face alignment image.
+
+```ts
 getFaceAlignmentImage(
   imageStream: ImageStream,
   faceToken: ArrayBuffer
 ): ImageBitmap
 ```
 
-Get the aligned face image from a detected face.
+#### **Parameters**
 
-**Parameters:**
+| Name          | Type                                       | Description                        |
+| ------------- | ------------------------------------------ | ---------------------------------- |
+| `imageStream` | [`ImageStream`](../interfaces/ImageStream) | Input image stream to process      |
+| `faceToken`   | `ArrayBuffer`                              | Face token from previous detection |
 
-- `imageStream`: Input image stream
-- `faceToken`: Face token data from face detection
+#### **Returns**
 
-**Returns:**
+- [`ImageBitmap`](../interfaces/ImageBitmap) – Aligned face image from the detection.
 
-- Aligned face image as ImageBitmap
+---
 
-### multipleFacePipelineProcess
+### `multipleFacePipelineProcess`
 
-```typescript
+Process multiple faces in a pipeline.
+
+```ts
 multipleFacePipelineProcess(
   imageStream: ImageStream,
   multipleFaceData: FaceData[],
@@ -178,86 +209,438 @@ multipleFacePipelineProcess(
 ): boolean
 ```
 
-Process multiple faces in a pipeline, applying various face recognition and analysis features.
+#### **Parameters**
 
-**Parameters:**
+| Name               | Type                                                        | Description                                  |
+| ------------------ | ----------------------------------------------------------- | -------------------------------------------- |
+| `imageStream`      | [`ImageStream`](../interfaces/ImageStream)                  | Input image stream to process                |
+| `multipleFaceData` | [`FaceData[]`](../types/FaceData)                           | Array of face data objects to process        |
+| `parameter`        | [`SessionCustomParameter`](../types/SessionCustomParameter) | Configuration for feature enabling/disabling |
 
-- `imageStream`: Input image stream
-- `multipleFaceData`: Array of face data to process
-- `parameter`: Custom parameters for processing
+#### **Returns**
 
-**Returns:**
+- `boolean` – Returns `true` if the pipeline processing completed successfully; otherwise `false`.
 
-- Success status of the pipeline processing
+---
 
-### getRGBLivenessConfidence
+### `getRGBLivenessConfidence`
 
-```typescript
+Get the RGB liveness confidence.
+
+```ts
 getRGBLivenessConfidence(): number[]
 ```
 
-Get RGB liveness detection confidence scores for detected faces.
+#### **Returns**
 
-**Returns:**
+- `number[]` – Confidence scores (0-1) per face.
 
-- Array of confidence scores for RGB liveness detection
+---
 
-### getFaceQualityConfidence
+### `getFaceQualityConfidence`
 
-```typescript
+Get the face quality predict confidence.
+
+```ts
 getFaceQualityConfidence(): number[]
 ```
 
-Get face quality assessment confidence scores for detected faces.
+#### **Returns**
 
-**Returns:**
+- `number[]` – Quality scores (0-1) per face.
 
-- Array of confidence scores for face quality assessment
+---
 
-### getFaceMaskConfidence
+### `getFaceMaskConfidence`
 
-```typescript
+Get the face mask confidence.
+
+```ts
 getFaceMaskConfidence(): number[]
 ```
 
-Get face mask detection confidence scores for detected faces.
+#### **Returns**
 
-**Returns:**
+- `number[]` – Mask detection scores (0-1) per face.
 
-- Array of confidence scores for face mask detection
+---
 
-### getFaceInteractionState
+### `getFaceInteractionState`
 
-```typescript
+Get the prediction results of face interaction.
+
+```ts
 getFaceInteractionState(): FaceInteractionState[]
 ```
 
-Get face interaction state information for detected faces.
+#### **Returns**
 
-**Returns:**
+- [`FaceInteractionState[]`](../types/FaceInteractionState) – Array of face interaction states.
 
-- Array of face interaction states including eye states
+---
 
-### getFaceInteractionActionsResult
+### `getFaceInteractionActionsResult`
 
-```typescript
+Get the prediction results of face interaction actions.
+
+```ts
 getFaceInteractionActionsResult(): FaceInteractionsAction[]
 ```
 
-Get face interaction action detection results for detected faces.
+#### **Returns**
 
-**Returns:**
+- [`FaceInteractionsAction[]`](../types/FaceInteractionsAction) – Array of detected face interaction actions.
 
-- Array of detected face interaction actions (normal, shake, jaw open, head raise, blink)
+---
 
-### getFaceAttributeResult
+### `getFaceAttributeResult`
 
-```typescript
+Get the face attribute results.
+
+```ts
 getFaceAttributeResult(): FaceAttributeResult[]
 ```
 
-Get face attribute analysis results for detected faces.
+#### **Returns**
 
-**Returns:**
+- [`FaceAttributeResult[]`](../types/FaceAttributeResult) – Array of detected face attributes.
 
-- Array of face attributes including age bracket, gender, and race predictions
+---
+
+### `setDetectMode`
+
+Set the detect mode in the session.
+
+```ts
+setDetectMode(mode: number): void
+```
+
+#### **Parameters**
+
+| Name   | Type     | Description                           |
+| ------ | -------- | ------------------------------------- |
+| `mode` | `number` | Detection mode value. Defaults to `0` |
+
+#### **Returns**
+
+- `void`
+
+---
+
+### `setMaxDetectFaceNum`
+
+Set the maximum number of detected faces in the session.
+
+```ts
+setMaxDetectFaceNum(num: number): void
+```
+
+#### **Parameters**
+
+| Name  | Type     | Description                                        |
+| ----- | -------- | -------------------------------------------------- |
+| `num` | `number` | Maximum number of detected faces. Defaults to `10` |
+
+#### **Returns**
+
+- `void`
+
+---
+
+### `setDetectPixelLevel`
+
+Set the detect pixel level in the session.
+
+```ts
+setDetectPixelLevel(level: number): void
+```
+
+#### **Parameters**
+
+| Name    | Type     | Description                                  |
+| ------- | -------- | -------------------------------------------- |
+| `level` | `number` | Detection pixel level value. Defaults to `0` |
+
+#### **Returns**
+
+- `void`
+
+---
+
+### `setTrackByDetectModeFPS`
+
+Set the track by detect mode FPS in the session.
+
+```ts
+setTrackByDetectModeFPS(fps: number): void
+```
+
+#### **Parameters**
+
+| Name  | Type     | Description                                     |
+| ----- | -------- | ----------------------------------------------- |
+| `fps` | `number` | Track by detect mode FPS value. Defaults to `0` |
+
+#### **Returns**
+
+- `void`
+
+---
+
+### `detectFace`
+
+Run face detection in the session.
+
+```ts
+detectFace(imageStream: ImageStream): FaceRect[]
+```
+
+#### **Parameters**
+
+| Name          | Type                                       | Description                   |
+| ------------- | ------------------------------------------ | ----------------------------- |
+| `imageStream` | [`ImageStream`](../interfaces/ImageStream) | Input image stream to process |
+
+#### **Returns**
+
+- [`FaceRect[]`](../types/FaceRect.md) - Array of detected face rectangles
+
+---
+
+### `getFaceLandmark`
+
+Get the face landmark points.
+
+```ts
+getFaceLandmark(imageStream: ImageStream): Point2f[]
+```
+
+#### **Parameters**
+
+| Name          | Type                                       | Description                   |
+| ------------- | ------------------------------------------ | ----------------------------- |
+| `imageStream` | [`ImageStream`](../interfaces/ImageStream) | Input image stream to process |
+
+#### **Returns**
+
+- [`Point2f[]`](../types/Point2f.md) - Array of facial landmark points
+
+---
+
+### `getFaceDenseLandmark`
+
+Get the face dense landmark points.
+
+```ts
+getFaceDenseLandmark(imageStream: ImageStream): Point2f[]
+```
+
+#### **Parameters**
+
+| Name          | Type                                       | Description                   |
+| ------------- | ------------------------------------------ | ----------------------------- |
+| `imageStream` | [`ImageStream`](../interfaces/ImageStream) | Input image stream to process |
+
+#### **Returns**
+
+- [`Point2f[]`](../types/Point2f.md) - Array of dense facial landmark points
+
+---
+
+### `getFaceFeature`
+
+Get the face feature data.
+
+```ts
+getFaceFeature(imageStream: ImageStream): ArrayBuffer
+```
+
+#### **Parameters**
+
+| Name          | Type                                       | Description                   |
+| ------------- | ------------------------------------------ | ----------------------------- |
+| `imageStream` | [`ImageStream`](../interfaces/ImageStream) | Input image stream to process |
+
+#### **Returns**
+
+- `ArrayBuffer` - Face feature data
+
+---
+
+### `getFaceQuality`
+
+Get the face quality score.
+
+```ts
+getFaceQuality(imageStream: ImageStream): number
+```
+
+#### **Parameters**
+
+| Name          | Type                                       | Description                   |
+| ------------- | ------------------------------------------ | ----------------------------- |
+| `imageStream` | [`ImageStream`](../interfaces/ImageStream) | Input image stream to process |
+
+#### **Returns**
+
+- `number` - Face quality score
+
+---
+
+### `getFaceAngle`
+
+Get the face angle information.
+
+```ts
+getFaceAngle(imageStream: ImageStream): FaceAngle
+```
+
+#### **Parameters**
+
+| Name          | Type                                       | Description                   |
+| ------------- | ------------------------------------------ | ----------------------------- |
+| `imageStream` | [`ImageStream`](../interfaces/ImageStream) | Input image stream to process |
+
+#### **Returns**
+
+- [`FaceAngle`](../types/FaceAngle.md) - Face angle information
+
+---
+
+### `getFaceAttribute`
+
+Get the face attribute information.
+
+```ts
+getFaceAttribute(imageStream: ImageStream): FaceAttribute
+```
+
+#### **Parameters**
+
+| Name          | Type                                       | Description                   |
+| ------------- | ------------------------------------------ | ----------------------------- |
+| `imageStream` | [`ImageStream`](../interfaces/ImageStream) | Input image stream to process |
+
+#### **Returns**
+
+- [`FaceAttribute`](../types/FaceAttribute.md) - Face attribute information
+
+---
+
+### `getFaceToken`
+
+Get the face token data.
+
+```ts
+getFaceToken(imageStream: ImageStream): ArrayBuffer
+```
+
+#### **Parameters**
+
+| Name          | Type                                       | Description                   |
+| ------------- | ------------------------------------------ | ----------------------------- |
+| `imageStream` | [`ImageStream`](../interfaces/ImageStream) | Input image stream to process |
+
+#### **Returns**
+
+- `ArrayBuffer` - Face token data
+
+---
+
+### `getFaceFeatureFromToken`
+
+Get the face feature data from token.
+
+```ts
+getFaceFeatureFromToken(token: ArrayBuffer): ArrayBuffer
+```
+
+#### **Parameters**
+
+| Name    | Type          | Description                        |
+| ------- | ------------- | ---------------------------------- |
+| `token` | `ArrayBuffer` | Face token from previous detection |
+
+#### **Returns**
+
+- `ArrayBuffer` - Face feature data from token
+
+---
+
+### `getFaceLandmarkFromToken`
+
+Get the facial landmark points from token.
+
+```ts
+getFaceLandmarkFromToken(token: ArrayBuffer): Point2f[]
+```
+
+#### **Parameters**
+
+| Name    | Type          | Description                        |
+| ------- | ------------- | ---------------------------------- |
+| `token` | `ArrayBuffer` | Face token from previous detection |
+
+#### **Returns**
+
+- [`Point2f[]`](../types/Point2f.md) - Array of facial landmark points from token
+
+---
+
+### `getFaceQualityFromToken`
+
+Get the face quality score from token.
+
+```ts
+getFaceQualityFromToken(token: ArrayBuffer): number
+```
+
+#### **Parameters**
+
+| Name    | Type          | Description                        |
+| ------- | ------------- | ---------------------------------- |
+| `token` | `ArrayBuffer` | Face token from previous detection |
+
+#### **Returns**
+
+- `number` - Face quality score from token
+
+---
+
+### `getFaceAngleFromToken`
+
+Get the face angle information from token.
+
+```ts
+getFaceAngleFromToken(token: ArrayBuffer): FaceAngle
+```
+
+#### **Parameters**
+
+| Name    | Type          | Description                        |
+| ------- | ------------- | ---------------------------------- |
+| `token` | `ArrayBuffer` | Face token from previous detection |
+
+#### **Returns**
+
+- [`FaceAngle`](../types/FaceAngle.md) - Face angle information from token
+
+---
+
+### `getFaceAttributeFromToken`
+
+Get the face attribute information from token.
+
+```ts
+getFaceAttributeFromToken(token: ArrayBuffer): FaceAttribute
+```
+
+#### **Parameters**
+
+| Name    | Type          | Description                        |
+| ------- | ------------- | ---------------------------------- |
+| `token` | `ArrayBuffer` | Face token from previous detection |
+
+#### **Returns**
+
+- [`FaceAttribute`](../types/FaceAttribute.md) - Face attribute information from token

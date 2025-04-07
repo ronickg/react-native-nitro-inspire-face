@@ -2,9 +2,17 @@
 sidebar_position: 4
 ---
 
+import useBaseUrl from '@docusaurus/useBaseUrl'
+
 # Vision Camera Example
 
 This guide demonstrates how to integrate react-native-nitro-inspire-face with [react-native-vision-camera](https://mrousavy.com/react-native-vision-camera/) to perform real-time face detection and landmark tracking. The example also uses:
+
+<div style={{ float: 'right', marginLeft: '20px' }}>
+  <svg xmlns="http://www.w3.org/2000/svg" width="300" height="378">
+    <image href={useBaseUrl("img/vision-camera-example.png")} width="300" height="378" />
+  </svg>
+</div>
 
 - [vision-camera-resize-plugin](https://github.com/mrousavy/vision-camera-resize-plugin) to efficiently resize frames for optimal processing performance
 - [@shopify/react-native-skia](https://github.com/Shopify/react-native-skia) for high-performance drawing of facial landmarks on the camera preview
@@ -138,6 +146,7 @@ export default function Example() {
     bitmap.dispose();
   }, []);
 
+  //The CameraPermissionGuard is just a wrapper to check for permissions
   return (
     <View style={{ flex: 1 }}>
       <CameraPermissionGuard device={device}>

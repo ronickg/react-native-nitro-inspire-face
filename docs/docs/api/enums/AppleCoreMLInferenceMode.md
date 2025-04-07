@@ -1,5 +1,5 @@
 ---
-sidebar_position: 6
+sidebar_position: 1
 title: AppleCoreMLInferenceMode
 ---
 
@@ -15,16 +15,10 @@ enum AppleCoreMLInferenceMode {
 }
 ```
 
-## Modes
+## Values
 
-### CPU
-
-Uses only CPU for inference computations. Most compatible but potentially slower option.
-
-### GPU
-
-Prioritizes GPU for inference computations. Better performance for parallel processing tasks.
-
-### ANE
-
-Automatic selection with Apple Neural Engine (ANE) prioritized. Best performance on supported devices with neural engine hardware.
+| Enum  | Value | Description                                                                                                                       |
+| ----- | ----- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `CPU` | `0`   | Uses only CPU for inference computations. Most compatible but potentially slower option                                           |
+| `GPU` | `1`   | Prioritizes GPU for inference computations. Better performance for parallel processing tasks                                      |
+| `ANE` | `2`   | Automatic selection with Apple Neural Engine (ANE) prioritized. Best performance on supported devices with neural engine hardware |

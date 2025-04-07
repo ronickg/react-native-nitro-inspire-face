@@ -4,7 +4,7 @@ title: Point2f
 
 # Point2f
 
-2D point with floating-point coordinates.
+2D point with floating-point coordinates. Used for precise positioning of facial features.
 
 ```typescript
 type Point2f = {
@@ -15,10 +15,7 @@ type Point2f = {
 
 ## Properties
 
-### x
-
-- X-coordinate as a floating-point number for precise positioning.
-
-### y
-
-- Y-coordinate as a floating-point number for precise positioning.
+| Property | Type     | Description                             |
+| -------- | -------- | --------------------------------------- |
+| `x`      | `number` | X-coordinate as a floating-point number |
+| `y`      | `number` | Y-coordinate as a floating-point number |

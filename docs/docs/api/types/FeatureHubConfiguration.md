@@ -4,7 +4,7 @@ title: FeatureHubConfiguration
 
 # FeatureHubConfiguration
 
-Configuration settings for the FeatureHub face management system.
+Configuration settings for the FeatureHub functionality. FeatureHub is a built-in global lightweight face feature vector management system. It supports basic face feature search, deletion, and modification functions, and offers two optional data storage modes: in-memory and persistence.
 
 ```typescript
 type FeatureHubConfiguration = {
@@ -18,22 +18,10 @@ type FeatureHubConfiguration = {
 
 ## Properties
 
-### searchMode
-
-- Determines how face searches are performed. See [SearchMode](../enums/SearchMode.md) for details.
-
-### enablePersistence
-
-- Controls whether face features are stored persistently in a database.
-
-### persistenceDbPath
-
-- File path where the face feature database will be stored when persistence is enabled.
-
-### searchThreshold
-
-- Similarity threshold for face matching (typically around 0.42 for access control scenarios).
-
-### primaryKeyMode
-
-- Controls how face feature IDs are generated. See [PrimaryKeyMode](../enums/PrimaryKeyMode.md) for details.
+| Property            | Type                                           | Description                                                    |
+| ------------------- | ---------------------------------------------- | -------------------------------------------------------------- |
+| `searchMode`        | [`SearchMode`](../enums/SearchMode.md)         | Mode of face search affecting execution efficiency and results |
+| `enablePersistence` | `boolean`                                      | Flag to enable or disable data persistence                     |
+| `persistenceDbPath` | `string`                                       | Path to the database file for persistence storage              |
+| `searchThreshold`   | `number`                                       | Threshold value for face search comparisons. Default to 0.48   |
+| `primaryKeyMode`    | [`PrimaryKeyMode`](../enums/PrimaryKeyMode.md) | Mode for managing primary keys in the database                 |

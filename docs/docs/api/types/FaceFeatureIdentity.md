@@ -4,7 +4,7 @@ title: FaceFeatureIdentity
 
 # FaceFeatureIdentity
 
-Identity information associated with a face feature.
+Identity information associated with a face feature. Used for face recognition and database management.
 
 ```typescript
 type FaceFeatureIdentity = {
@@ -16,14 +16,8 @@ type FaceFeatureIdentity = {
 
 ## Properties
 
-### id
-
-- Unique identifier for the face feature in the database.
-
-### feature
-
-- Binary feature vector representing the face's unique characteristics.
-
-### confidence
-
-- Optional confidence score for the feature match when returned from search operations.
+| Property     | Type          | Description                                   |
+| ------------ | ------------- | --------------------------------------------- |
+| `id`         | `number`      | Unique identifier for the face feature        |
+| `feature`    | `ArrayBuffer` | Feature vector representing the face          |
+| `confidence` | `number`      | _(Optional)_ Confidence score for the feature |

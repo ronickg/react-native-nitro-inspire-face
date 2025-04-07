@@ -7,60 +7,51 @@ title: AssetManager
 
 Interface for managing assets in the application. Provides functionality for accessing and manipulating files and directories across different platforms (iOS and Android).
 
-```typescript
-interface AssetManager
-  extends HybridObject<{ ios: 'swift'; android: 'kotlin' }> {
-  getFilesDirectory(): string;
-  getDatabasesDirectory(): string;
-  copyAssetToFile(assetPath: string, filePath: string): boolean;
-}
-```
-
 ## Methods
 
-### getFilesDirectory
+### `getFilesDirectory`
+
+Get the path to the application's files directory.
 
 ```typescript
 getFilesDirectory(): string
 ```
 
-Get the path to the application's files directory. This directory is suitable for storing application-specific files.
+#### **Returns**
 
-**Returns:**
+- `string` - String path to the files directory
 
-- String path to the files directory
+---
 
-Defined in: `AssetManager.nitro.ts:13`
+### `getDatabasesDirectory`
 
-### getDatabasesDirectory
+Get the path to the application's databases directory.
 
 ```typescript
 getDatabasesDirectory(): string
 ```
 
-Get the path to the application's databases directory. This directory is suitable for storing database files.
+#### **Returns**
 
-**Returns:**
+- `string` - String path to the databases directory
 
-- String path to the databases directory
+---
 
-Defined in: `AssetManager.nitro.ts:19`
+### `copyAssetToFile`
 
-### copyAssetToFile
+Copy an asset from the application bundle to a file in the filesystem.
 
 ```typescript
 copyAssetToFile(assetPath: string, filePath: string): boolean
 ```
 
-Copy an asset from the application bundle to a file in the filesystem. This is useful for extracting bundled resources to a location where they can be accessed and modified by the application.
+#### **Parameters**
 
-**Parameters:**
+| Name        | Type     | Description                                 |
+| ----------- | -------- | ------------------------------------------- |
+| `assetPath` | `string` | Path to the asset in the application bundle |
+| `filePath`  | `string` | Destination path in the filesystem          |
 
-- `assetPath`: Path to the asset in the application bundle
-- `filePath`: Destination path in the filesystem
+#### **Returns**
 
-**Returns:**
-
-- Boolean indicating success or failure of the copy operation
-
-Defined in: `AssetManager.nitro.ts:27`
+- `boolean` - Boolean indicating success or failure of the copy operation

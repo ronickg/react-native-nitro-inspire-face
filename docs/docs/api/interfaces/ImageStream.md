@@ -18,28 +18,81 @@ interface ImageStream {
 
 ## Methods
 
-### writeImageToFile
+### `writeImageToFile`
 
-- Writes the image stream to a file.
-- Parameters:
-  - `filePath`: `string` - Path where the image will be saved
+Decode the image from ImageStream and store it to a disk path.
 
-### setFormat
+```typescript
+writeImageToFile(filePath: string): void
+```
 
-- Sets the format of the image stream.
-- Parameters:
-  - `format`: [`ImageFormat`](../enums/ImageFormat.md) - Image format to use
+#### **Parameters**
 
-### setRotation
+| Name       | Type     | Description                            |
+| ---------- | -------- | -------------------------------------- |
+| `filePath` | `string` | The path to which the image is written |
 
-- Sets the rotation of the image stream.
-- Parameters:
-  - `rotation`: [`CameraRotation`](../enums/CameraRotation.md) - Rotation angle to apply
+#### **Returns**
 
-### createImageBitmap
+- `void`
 
-- Creates a bitmap image from the stream.
-- Parameters:
-  - `isRotate`: `boolean` (optional) - Whether to apply rotation
-  - `scale`: `number` (optional) - Scale factor to apply
-- Returns: [`ImageBitmap`](./ImageBitmap.md) - The created bitmap image
+---
+
+### `setFormat`
+
+Set the format of the image stream.
+
+```typescript
+setFormat(format: ImageFormat): void
+```
+
+#### **Parameters**
+
+| Name     | Type                                     | Description         |
+| -------- | ---------------------------------------- | ------------------- |
+| `format` | [`ImageFormat`](../enums/ImageFormat.md) | Format of the image |
+
+#### **Returns**
+
+- `void`
+
+---
+
+### `setRotation`
+
+Set the rotation of the image stream.
+
+```typescript
+setRotation(rotation: CameraRotation): void
+```
+
+#### **Parameters**
+
+| Name       | Type                                           | Description                 |
+| ---------- | ---------------------------------------------- | --------------------------- |
+| `rotation` | [`CameraRotation`](../enums/CameraRotation.md) | Rotation angle of the image |
+
+#### **Returns**
+
+- `void`
+
+---
+
+### `createImageBitmap`
+
+Create a bitmap image from the stream.
+
+```typescript
+createImageBitmap(isRotate?: boolean, scale?: number): ImageBitmap
+```
+
+#### **Parameters**
+
+| Name       | Type      | Description                              |
+| ---------- | --------- | ---------------------------------------- |
+| `isRotate` | `boolean` | _(Optional)_ Whether to rotate the image |
+| `scale`    | `number`  | _(Optional)_ The scale of the image      |
+
+#### **Returns**
+
+- [`ImageBitmap`](./ImageBitmap.md) - The created bitmap image

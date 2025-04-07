@@ -7,318 +7,709 @@ title: InspireFace
 
 Main interface for the InspireFace SDK functionality. Provides comprehensive face detection, recognition, and analysis capabilities.
 
-```typescript
-interface InspireFace {
-  readonly version: string;
-  readonly featureLength: number;
-  readonly faceDenseLandmarkLength: number;
-  readonly faceBasicTokenLength: number;
-
-  launch(path: string): void;
-  reload(path: string): void;
-  terminate(): void;
-  featureHubDataEnable(config: FeatureHubConfiguration): void;
-  featureHubDataDisable(): void;
-  featureHubFaceSearchThresholdSetting(threshold: number): void;
-  createSession(
-    parameter: SessionCustomParameter,
-    detectMode: DetectMode,
-    maxDetectFaceNum: number,
-    detectPixelLevel: number,
-    trackByDetectModeFPS: number
-  ): Session;
-  createImageBitmapFromBuffer(
-    buffer: ArrayBuffer,
-    width: number,
-    height: number,
-    channels: number
-  ): ImageBitmap;
-  createImageBitmapFromFilePath(
-    channels: number,
-    filePath: string
-  ): ImageBitmap;
-  createImageStreamFromBitmap(
-    bitmap: ImageBitmap,
-    rotation: CameraRotation
-  ): ImageStream;
-  getFaceDenseLandmarkFromFaceToken(
-    token: ArrayBuffer,
-    num?: number
-  ): Point2f[];
-  getFaceFiveKeyPointsFromFaceToken(
-    token: ArrayBuffer,
-    num?: number
-  ): Point2f[];
-  featureHubFaceInsert(feature: FaceFeatureIdentity): number;
-  featureHubFaceUpdate(feature: FaceFeatureIdentity): boolean;
-  featureHubFaceRemove(id: number): boolean;
-  featureHubFaceSearch(feature: ArrayBuffer): FaceFeatureIdentity | null;
-  featureHubGetFaceIdentity(id: number): FaceFeatureIdentity | null;
-  featureHubFaceSearchTopK(
-    feature: ArrayBuffer,
-    topK: number
-  ): SearchTopKResult[];
-  featureHubGetFaceCount(): number;
-  featureHubGetExistingIds(): number[];
-  faceComparison(feature1: ArrayBuffer, feature2: ArrayBuffer): number;
-  getRecommendedCosineThreshold(): number;
-  cosineSimilarityConvertToPercentage(similarity: number): number;
-  updateCosineSimilarityConverter(config: SimilarityConverterConfig): void;
-  getCosineSimilarityConverter(): SimilarityConverterConfig;
-  setExpansiveHardwareRockchipDmaHeapPath(path: string): void;
-  queryExpansiveHardwareRockchipDmaHeapPath(): string;
-  setAppleCoreMLInferenceMode(mode: AppleCoreMLInferenceMode): void;
-  setCudaDeviceId(deviceId: number): void;
-  getCudaDeviceId(): number;
-  printCudaDeviceInfo(): void;
-  getNumCudaDevices(): number;
-  checkCudaDeviceSupport(): boolean;
-  fromBase64(base64: string): ArrayBuffer;
-  toBase64(buffer: ArrayBuffer): string;
-}
-```
-
 ## Properties
 
-### version
+### `version`
 
-- Version string of the SDK.
+Version string of the SDK.
 
-### featureLength
+```typescript
+readonly version: string
+```
 
-- Length of face feature vectors.
+### `featureLength`
 
-### faceDenseLandmarkLength
+Length of face feature vectors used in face recognition.
 
-- Number of dense facial landmarks.
+```typescript
+readonly featureLength: number
+```
 
-### faceBasicTokenLength
+### `faceDenseLandmarkLength`
 
-- Length of basic face tokens.
+Number of dense facial landmarks that can be detected.
+
+```typescript
+readonly faceDenseLandmarkLength: number
+```
+
+### `faceBasicTokenLength`
+
+Length of basic face tokens used in face detection and analysis.
+
+```typescript
+readonly faceBasicTokenLength: number
+```
 
 ## Methods
 
-### launch
+### `launch`
 
-- Initializes the SDK with resources.
-- Parameters:
-  - `path`: `string` - Path to resource files
+Start the InspireFace SDK at the initialization stage of your program. This is a global operation designed to be used only once. It serves as a prerequisite for other function interfaces.
 
-### reload
+```typescript
+launch(path: string): void
+```
 
-- Reloads the SDK with new resources.
-- Parameters:
-  - `path`: `string` - Path to resource files
+#### **Parameters**
 
-### terminate
+| Name   | Type     | Description                                       |
+| ------ | -------- | ------------------------------------------------- |
+| `path` | `string` | Path to the resource files that need to be loaded |
 
-- Terminates the SDK and releases resources.
+#### **Returns**
 
-### featureHubDataEnable
+- `void`
 
-- Enables FeatureHub data management.
-- Parameters:
-  - `config`: [`FeatureHubConfiguration`](../types/FeatureHubConfiguration.md) - Configuration for FeatureHub
+---
 
-### featureHubDataDisable
+### `reload`
 
-- Disables FeatureHub data management.
+Reload the InspireFace SDK, releasing all allocated resources and reinitializing with new resources.
 
-### featureHubFaceSearchThresholdSetting
+```typescript
+reload(path: string): void
+```
 
-- Sets the threshold for face search operations.
-- Parameters:
-  - `threshold`: `number` - Threshold value
+#### **Parameters**
 
-### createSession
+| Name   | Type     | Description                                       |
+| ------ | -------- | ------------------------------------------------- |
+| `path` | `string` | Path to the resource files that need to be loaded |
 
-- Creates a new face recognition session.
-- Parameters:
-  - `parameter`: [`SessionCustomParameter`](../types/SessionCustomParameter.md) - Custom parameters for the session
-  - `detectMode`: [`DetectMode`](../enums/DetectMode.md) - Face detection mode
-  - `maxDetectFaceNum`: `number` - Maximum number of faces to detect
-  - `detectPixelLevel`: `number` - Detection resolution level
-  - `trackByDetectModeFPS`: `number` - Frame rate for tracking mode
-- Returns: [`Session`](./Session.md) - New session instance
+#### **Returns**
 
-### createImageBitmapFromBuffer
+- `void`
 
-- Creates an image bitmap from a buffer.
-- Parameters:
-  - `buffer`: `ArrayBuffer` - Raw image data
-  - `width`: `number` - Image width
-  - `height`: `number` - Image height
-  - `channels`: `number` - Number of color channels
-- Returns: [`ImageBitmap`](./ImageBitmap.md) - Created bitmap image
+---
 
-### createImageBitmapFromFilePath
+### `terminate`
 
-- Creates an image bitmap from a file.
-- Parameters:
-  - `channels`: `number` - Number of color channels
-  - `filePath`: `string` - Path to the image file
-- Returns: [`ImageBitmap`](./ImageBitmap.md) - Created bitmap image
+Terminate the InspireFace SDK and release all allocated resources. This should be called at the end of your program to ensure proper cleanup.
 
-### createImageStreamFromBitmap
+```typescript
+terminate(): void
+```
 
-- Creates an image stream from a bitmap.
-- Parameters:
-  - `bitmap`: [`ImageBitmap`](./ImageBitmap.md) - Source bitmap image
-  - `rotation`: [`CameraRotation`](../enums/CameraRotation.md) - Rotation to apply
-- Returns: [`ImageStream`](./ImageStream.md) - Created image stream
+#### **Returns**
 
-### getFaceDenseLandmarkFromFaceToken
+- `void`
 
-- Gets dense facial landmarks from a face token.
-- Parameters:
-  - `token`: `ArrayBuffer` - Face token data
-  - `num`: `number` (optional) - Number of landmarks to retrieve
-- Returns: [`Point2f[]`](../types/Point2f.md) - Array of facial landmarks
+---
 
-### getFaceFiveKeyPointsFromFaceToken
+### `featureHubDataEnable`
 
-- Gets five key facial points from a face token.
-- Parameters:
-  - `token`: `ArrayBuffer` - Face token data
-  - `num`: `number` (optional) - Number of points to retrieve
-- Returns: [`Point2f[]`](../types/Point2f.md) - Array of facial points
+Enable FeatureHub data management with specified configuration.
 
-### featureHubFaceInsert
+```typescript
+featureHubDataEnable(config: FeatureHubConfiguration): void
+```
 
-- Inserts a face feature into the database.
-- Parameters:
-  - `feature`: [`FaceFeatureIdentity`](../types/FaceFeatureIdentity.md) - Face feature identity to insert
-- Returns: `number` - ID of the inserted feature
+#### **Parameters**
 
-### featureHubFaceUpdate
+| Name     | Type                                                             | Description                           |
+| -------- | ---------------------------------------------------------------- | ------------------------------------- |
+| `config` | [`FeatureHubConfiguration`](../types/FeatureHubConfiguration.md) | Configuration settings for FeatureHub |
 
-- Updates a face feature in the database.
-- Parameters:
-  - `feature`: [`FaceFeatureIdentity`](../types/FaceFeatureIdentity.md) - Face feature identity to update
-- Returns: `boolean` - Success status
+#### **Returns**
 
-### featureHubFaceRemove
+- `void`
 
-- Removes a face feature from the database.
-- Parameters:
-  - `id`: `number` - ID of the face feature to remove
-- Returns: `boolean` - Success status
+---
 
-### featureHubFaceSearch
+### `featureHubDataDisable`
 
-- Searches for a matching face feature.
-- Parameters:
-  - `feature`: `ArrayBuffer` - Feature vector to search for
-- Returns: [`FaceFeatureIdentity`](../types/FaceFeatureIdentity.md) | `null` - Matched feature or null
+Disable FeatureHub data management.
 
-### featureHubGetFaceIdentity
+```typescript
+featureHubDataDisable(): void
+```
 
-- Gets a face feature by ID.
-- Parameters:
-  - `id`: `number` - ID of the face feature to retrieve
-- Returns: [`FaceFeatureIdentity`](../types/FaceFeatureIdentity.md) | `null` - Retrieved feature or null
+#### **Returns**
 
-### featureHubFaceSearchTopK
+- `void`
 
-- Searches for top K similar face features.
-- Parameters:
-  - `feature`: `ArrayBuffer` - Feature vector to search for
-  - `topK`: `number` - Number of results to return
-- Returns: [`SearchTopKResult[]`](../types/SearchTopKResult.md) - Array of search results
+---
 
-### featureHubGetFaceCount
+### `featureHubFaceSearchThresholdSetting`
 
-- Gets the total count of face features in the database.
-- Returns: `number` - Number of features
+Set the threshold for face search operations in FeatureHub.
 
-### featureHubGetExistingIds
+```typescript
+featureHubFaceSearchThresholdSetting(threshold: number): void
+```
 
-- Gets all existing face feature IDs.
-- Returns: `number[]` - Array of feature IDs
+#### **Parameters**
 
-### faceComparison
+| Name        | Type     | Description                                |
+| ----------- | -------- | ------------------------------------------ |
+| `threshold` | `number` | Threshold value for face search operations |
 
-- Compares two face features.
-- Parameters:
-  - `feature1`: `ArrayBuffer` - First feature vector
-  - `feature2`: `ArrayBuffer` - Second feature vector
-- Returns: `number` - Similarity score
+#### **Returns**
 
-### getRecommendedCosineThreshold
+- `void`
 
-- Gets the recommended threshold for cosine similarity.
-- Returns: `number` - Recommended threshold value
+---
 
-### cosineSimilarityConvertToPercentage
+### `createSession`
 
-- Converts cosine similarity to percentage similarity.
-- Parameters:
-  - `similarity`: `number` - Cosine similarity value
-- Returns: `number` - Percentage similarity
+Create a new face recognition session with specified parameters.
 
-### updateCosineSimilarityConverter
+```typescript
+createSession(
+  parameter: SessionCustomParameter,
+  detectMode: DetectMode,
+  maxDetectFaceNum: number,
+  detectPixelLevel: number,
+  trackByDetectModeFPS: number
+): Session
+```
 
-- Updates the similarity converter configuration.
-- Parameters:
-  - `config`: [`SimilarityConverterConfig`](../types/SimilarityConverterConfig.md) - New configuration settings
+#### **Parameters**
 
-### getCosineSimilarityConverter
+| Name                   | Type                                                           | Description                                                                             |
+| ---------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `parameter`            | [`SessionCustomParameter`](../types/SessionCustomParameter.md) | Custom parameters for the session                                                       |
+| `detectMode`           | [`DetectMode`](../enums/DetectMode.md)                         | Face detection mode (ALWAYS_DETECT, LIGHT_TRACK, or TRACK_BY_DETECTION)                 |
+| `maxDetectFaceNum`     | `number`                                                       | Maximum number of faces to detect                                                       |
+| `detectPixelLevel`     | `number`                                                       | Detection resolution level (multiple of 160, e.g., 160, 320, 640; default -1 means 320) |
+| `trackByDetectModeFPS` | `number`                                                       | Frame rate for tracking mode (default -1 means 30fps)                                   |
 
-- Gets the current similarity converter configuration.
-- Returns: [`SimilarityConverterConfig`](../types/SimilarityConverterConfig.md) - Current configuration
+#### **Returns**
 
-### setExpansiveHardwareRockchipDmaHeapPath
+- [`Session`](./Session.md) - New session instance
 
-- Sets the path for Rockchip DMA heap.
-- Parameters:
-  - `path`: `string` - Path to DMA heap
+---
 
-### queryExpansiveHardwareRockchipDmaHeapPath
+### `createImageBitmapFromBuffer`
 
-- Queries the current Rockchip DMA heap path.
-- Returns: `string` - Current DMA heap path
+Create an image bitmap from a raw buffer.
 
-### setAppleCoreMLInferenceMode
+```typescript
+createImageBitmapFromBuffer(
+  buffer: ArrayBuffer,
+  width: number,
+  height: number,
+  channels: number
+): ImageBitmap
+```
 
-- Sets the Apple CoreML inference mode.
-- Parameters:
-  - `mode`: [`AppleCoreMLInferenceMode`](../enums/AppleCoreMLInferenceMode.md) - Inference mode to use
+#### **Parameters**
 
-### setCudaDeviceId
+| Name       | Type          | Description              |
+| ---------- | ------------- | ------------------------ |
+| `buffer`   | `ArrayBuffer` | Raw image data           |
+| `width`    | `number`      | Image width in pixels    |
+| `height`   | `number`      | Image height in pixels   |
+| `channels` | `number`      | Number of color channels |
 
-- Sets the CUDA device ID.
-- Parameters:
-  - `deviceId`: `number` - ID of the CUDA device
+#### **Returns**
 
-### getCudaDeviceId
+- [`ImageBitmap`](./ImageBitmap.md) - Created bitmap image
 
-- Gets the current CUDA device ID.
-- Returns: `number` - Current device ID
+---
 
-### printCudaDeviceInfo
+### `createImageBitmapFromFilePath`
 
-- Prints information about the CUDA device.
+Create an image bitmap from a file path.
 
-### getNumCudaDevices
+```typescript
+createImageBitmapFromFilePath(
+  channels: number,
+  filePath: string
+): ImageBitmap
+```
 
-- Gets the number of available CUDA devices.
-- Returns: `number` - Number of devices
+#### **Parameters**
 
-### checkCudaDeviceSupport
+| Name       | Type     | Description              |
+| ---------- | -------- | ------------------------ |
+| `channels` | `number` | Number of color channels |
+| `filePath` | `string` | Path to the image file   |
 
-- Checks if CUDA device support is available.
-- Returns: `boolean` - Support status
+#### **Returns**
 
-### fromBase64
+- [`ImageBitmap`](./ImageBitmap.md) - Created bitmap image
 
-- Converts a base64 string to an ArrayBuffer.
-- Parameters:
-  - `base64`: `string` - Base64 string to convert
-- Returns: `ArrayBuffer` - Converted data
+---
 
-### toBase64
+### `createImageStreamFromBitmap`
 
-- Converts an ArrayBuffer to a base64 string.
-- Parameters:
-  - `buffer`: `ArrayBuffer` - ArrayBuffer to convert
-- Returns: `string` - Base64 string
+Create an image stream from a bitmap with specified rotation.
+
+```typescript
+createImageStreamFromBitmap(
+  bitmap: ImageBitmap,
+  rotation: CameraRotation
+): ImageStream
+```
+
+#### **Parameters**
+
+| Name       | Type                                           | Description         |
+| ---------- | ---------------------------------------------- | ------------------- |
+| `bitmap`   | [`ImageBitmap`](./ImageBitmap.md)              | Source bitmap image |
+| `rotation` | [`CameraRotation`](../enums/CameraRotation.md) | Rotation to apply   |
+
+#### **Returns**
+
+- [`ImageStream`](./ImageStream.md) - Created image stream
+
+---
+
+### `getFaceDenseLandmarkFromFaceToken`
+
+Get dense facial landmarks from a face token.
+
+```typescript
+getFaceDenseLandmarkFromFaceToken(
+  token: ArrayBuffer,
+  num?: number
+): Point2f[]
+```
+
+#### **Parameters**
+
+| Name    | Type          | Description                                  |
+| ------- | ------------- | -------------------------------------------- |
+| `token` | `ArrayBuffer` | Face token data                              |
+| `num`   | `number`      | _(Optional)_ number of landmarks to retrieve |
+
+#### **Returns**
+
+- [`Point2f[]`](../types/Point2f.md) - Array of facial landmarks
+
+---
+
+### `getFaceFiveKeyPointsFromFaceToken`
+
+Get five key facial points from a face token.
+
+```typescript
+getFaceFiveKeyPointsFromFaceToken(
+  token: ArrayBuffer,
+  num?: number
+): Point2f[]
+```
+
+#### **Parameters**
+
+| Name    | Type          | Description                               |
+| ------- | ------------- | ----------------------------------------- |
+| `token` | `ArrayBuffer` | Face token data                           |
+| `num`   | `number`      | _(Optional)_ number of points to retrieve |
+
+#### **Returns**
+
+- [`Point2f[]`](../types/Point2f.md) - Array of facial points
+
+---
+
+### `featureHubFaceInsert`
+
+Insert a face feature into the database.
+
+```typescript
+featureHubFaceInsert(feature: FaceFeatureIdentity): number
+```
+
+#### **Parameters**
+
+| Name      | Type                                                     | Description                     |
+| --------- | -------------------------------------------------------- | ------------------------------- |
+| `feature` | [`FaceFeatureIdentity`](../types/FaceFeatureIdentity.md) | Face feature identity to insert |
+
+#### **Returns**
+
+- `number` - ID of the inserted feature
+
+---
+
+### `featureHubFaceUpdate`
+
+Update a face feature in the database.
+
+```typescript
+featureHubFaceUpdate(feature: FaceFeatureIdentity): boolean
+```
+
+#### **Parameters**
+
+| Name      | Type                                                     | Description                     |
+| --------- | -------------------------------------------------------- | ------------------------------- |
+| `feature` | [`FaceFeatureIdentity`](../types/FaceFeatureIdentity.md) | Face feature identity to update |
+
+#### **Returns**
+
+- `boolean` - Success status
+
+---
+
+### `featureHubFaceRemove`
+
+Remove a face feature from the database.
+
+```typescript
+featureHubFaceRemove(id: number): boolean
+```
+
+#### **Parameters**
+
+| Name | Type     | Description                      |
+| ---- | -------- | -------------------------------- |
+| `id` | `number` | ID of the face feature to remove |
+
+#### **Returns**
+
+- `boolean` - Success status
+
+---
+
+### `featureHubFaceSearch`
+
+Search for a matching face feature in the database.
+
+```typescript
+featureHubFaceSearch(feature: ArrayBuffer): FaceFeatureIdentity | null
+```
+
+#### **Parameters**
+
+| Name      | Type          | Description                  |
+| --------- | ------------- | ---------------------------- |
+| `feature` | `ArrayBuffer` | Feature vector to search for |
+
+#### **Returns**
+
+- [`FaceFeatureIdentity`](../types/FaceFeatureIdentity.md) | `null` - Matched feature or null if not found
+
+---
+
+### `featureHubGetFaceIdentity`
+
+Get a face feature by ID from the database.
+
+```typescript
+featureHubGetFaceIdentity(id: number): FaceFeatureIdentity | null
+```
+
+#### **Parameters**
+
+| Name | Type     | Description                        |
+| ---- | -------- | ---------------------------------- |
+| `id` | `number` | ID of the face feature to retrieve |
+
+#### **Returns**
+
+- [`FaceFeatureIdentity`](../types/FaceFeatureIdentity.md) | `null` - Retrieved feature or null if not found
+
+---
+
+### `featureHubFaceSearchTopK`
+
+Search for top K similar face features.
+
+```typescript
+featureHubFaceSearchTopK(
+  feature: ArrayBuffer,
+  topK: number
+): SearchTopKResult[]
+```
+
+#### **Parameters**
+
+| Name      | Type          | Description                  |
+| --------- | ------------- | ---------------------------- |
+| `feature` | `ArrayBuffer` | Feature vector to search for |
+| `topK`    | `number`      | Number of results to return  |
+
+#### **Returns**
+
+- [`SearchTopKResult[]`](../types/SearchTopKResult.md) - Array of search results
+
+---
+
+### `featureHubGetFaceCount`
+
+Get the total count of face features in the database.
+
+```typescript
+featureHubGetFaceCount(): number
+```
+
+#### **Returns**
+
+- `number` - Number of features in the database
+
+---
+
+### `featureHubGetExistingIds`
+
+Get all existing face feature IDs from the database.
+
+```typescript
+featureHubGetExistingIds(): number[]
+```
+
+#### **Returns**
+
+- `number[]` - Array of feature IDs
+
+---
+
+### `faceComparison`
+
+Compare two face features.
+
+```typescript
+faceComparison(feature1: ArrayBuffer, feature2: ArrayBuffer): number
+```
+
+#### **Parameters**
+
+| Name       | Type          | Description           |
+| ---------- | ------------- | --------------------- |
+| `feature1` | `ArrayBuffer` | First feature vector  |
+| `feature2` | `ArrayBuffer` | Second feature vector |
+
+#### **Returns**
+
+- `number` - Similarity score between the two features
+
+---
+
+### `getRecommendedCosineThreshold`
+
+Get the recommended threshold for cosine similarity comparison.
+
+```typescript
+getRecommendedCosineThreshold(): number
+```
+
+#### **Returns**
+
+- `number` - Recommended threshold value
+
+---
+
+### `cosineSimilarityConvertToPercentage`
+
+Convert cosine similarity to percentage similarity.
+
+```typescript
+cosineSimilarityConvertToPercentage(similarity: number): number
+```
+
+#### **Parameters**
+
+| Name         | Type     | Description             |
+| ------------ | -------- | ----------------------- |
+| `similarity` | `number` | Cosine similarity value |
+
+#### **Returns**
+
+- `number` - Percentage similarity value
+
+---
+
+### `updateCosineSimilarityConverter`
+
+Update the similarity converter configuration.
+
+```typescript
+updateCosineSimilarityConverter(config: SimilarityConverterConfig): void
+```
+
+#### **Parameters**
+
+| Name     | Type                                                                 | Description                |
+| -------- | -------------------------------------------------------------------- | -------------------------- |
+| `config` | [`SimilarityConverterConfig`](../types/SimilarityConverterConfig.md) | New configuration settings |
+
+#### **Returns**
+
+- `void`
+
+---
+
+### `getCosineSimilarityConverter`
+
+Get the current similarity converter configuration.
+
+```typescript
+getCosineSimilarityConverter(): SimilarityConverterConfig
+```
+
+#### **Returns**
+
+- [`SimilarityConverterConfig`](../types/SimilarityConverterConfig.md) - Current configuration
+
+---
+
+### `setExpansiveHardwareRockchipDmaHeapPath`
+
+Set the path for Rockchip DMA heap. By default, the DMA Heap address used by RGA on RK devices is pre-configured.
+
+```typescript
+setExpansiveHardwareRockchipDmaHeapPath(path: string): void
+```
+
+#### **Parameters**
+
+| Name   | Type     | Description      |
+| ------ | -------- | ---------------- |
+| `path` | `string` | Path to DMA heap |
+
+#### **Returns**
+
+- `void`
+
+---
+
+### `queryExpansiveHardwareRockchipDmaHeapPath`
+
+Query the current Rockchip DMA heap path.
+
+```typescript
+queryExpansiveHardwareRockchipDmaHeapPath(): string
+```
+
+#### **Returns**
+
+- `string` - Current DMA heap path
+
+---
+
+### `setAppleCoreMLInferenceMode`
+
+Set the Apple CoreML inference mode. Must be called before creating a session.
+
+```typescript
+setAppleCoreMLInferenceMode(mode: AppleCoreMLInferenceMode): void
+```
+
+#### **Parameters**
+
+| Name   | Type                                                               | Description           |
+| ------ | ------------------------------------------------------------------ | --------------------- |
+| `mode` | [`AppleCoreMLInferenceMode`](../enums/AppleCoreMLInferenceMode.md) | Inference mode to use |
+
+#### **Returns**
+
+- `void`
+
+---
+
+### `setCudaDeviceId`
+
+Set the CUDA device ID. Must be called before creating a session.
+
+```typescript
+setCudaDeviceId(deviceId: number): void
+```
+
+#### **Parameters**
+
+| Name       | Type     | Description           |
+| ---------- | -------- | --------------------- |
+| `deviceId` | `number` | ID of the CUDA device |
+
+#### **Returns**
+
+- `void`
+
+---
+
+### `getCudaDeviceId`
+
+Get the current CUDA device ID.
+
+```typescript
+getCudaDeviceId(): number
+```
+
+#### **Returns**
+
+- `number` - Current CUDA device ID
+
+---
+
+### `printCudaDeviceInfo`
+
+Print information about the CUDA device.
+
+```typescript
+printCudaDeviceInfo(): void
+```
+
+#### **Returns**
+
+- `void`
+
+---
+
+### `getNumCudaDevices`
+
+Get the number of available CUDA devices.
+
+```typescript
+getNumCudaDevices(): number
+```
+
+#### **Returns**
+
+- `number` - Number of available CUDA devices
+
+---
+
+### `checkCudaDeviceSupport`
+
+Check if CUDA device support is available.
+
+```typescript
+checkCudaDeviceSupport(): boolean
+```
+
+#### **Returns**
+
+- `boolean` - Whether CUDA device support is available
+
+---
+
+### `fromBase64`
+
+Convert a base64 string to an ArrayBuffer.
+
+```typescript
+fromBase64(base64: string): ArrayBuffer
+```
+
+#### **Parameters**
+
+| Name     | Type     | Description              |
+| -------- | -------- | ------------------------ |
+| `base64` | `string` | Base64 string to convert |
+
+#### **Returns**
+
+- `ArrayBuffer` - Converted data
+
+---
+
+### `toBase64`
+
+Convert an ArrayBuffer to a base64 string.
+
+```typescript
+toBase64(buffer: ArrayBuffer): string
+```
+
+#### **Parameters**
+
+| Name     | Type          | Description            |
+| -------- | ------------- | ---------------------- |
+| `buffer` | `ArrayBuffer` | ArrayBuffer to convert |
+
+#### **Returns**
+
+- `string` - Base64 string

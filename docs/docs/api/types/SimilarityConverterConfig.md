@@ -18,22 +18,10 @@ type SimilarityConverterConfig = {
 
 ## Properties
 
-### threshold
-
-- Cosine similarity threshold for determining face matches (typically around 0.42).
-
-### middleScore
-
-- Reference value for percentage conversion (typically 0.5 or 0.6).
-
-### steepness
-
-- Controls the steepness of the conversion curve (typically around 8.0).
-
-### outputMin
-
-- Minimum value of the output range (typically 0.01).
-
-### outputMax
-
-- Maximum value of the output range (typically 1.0).
+| Property      | Type     | Description                                                                      |
+| ------------- | -------- | -------------------------------------------------------------------------------- |
+| `threshold`   | `number` | Cosine similarity threshold for determining face matches (typically around 0.42) |
+| `middleScore` | `number` | Reference value for percentage conversion (typically 0.5 or 0.6)                 |
+| `steepness`   | `number` | Controls the steepness of the conversion curve (typically around 8.0)            |
+| `outputMin`   | `number` | Minimum value of the output range (typically 0.01)                               |
+| `outputMax`   | `number` | Maximum value of the output range (typically 1.0)                                |

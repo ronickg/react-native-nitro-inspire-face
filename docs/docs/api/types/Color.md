@@ -4,7 +4,7 @@ title: Color
 
 # Color
 
-RGB color representation for drawing operations.
+RGB color representation. Used for drawing and visualization purposes.
 
 ```typescript
 type Color = {
@@ -16,14 +16,8 @@ type Color = {
 
 ## Properties
 
-### r
-
-- Red component value (0-255).
-
-### g
-
-- Green component value (0-255).
-
-### b
-
-- Blue component value (0-255).
+| Property | Type     | Description             |
+| -------- | -------- | ----------------------- |
+| `r`      | `number` | Red component (0-255)   |
+| `g`      | `number` | Green component (0-255) |
+| `b`      | `number` | Blue component (0-255)  |
