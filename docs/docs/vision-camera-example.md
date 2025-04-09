@@ -59,25 +59,22 @@ export default function Example() {
   const paint = Skia.Paint();
   paint.setColor(Skia.Color("blue"));
 
-  // Create a persistent session for frame processing
-  const session = useRef(
-    NitroModules.box(
-      InspireFace.createSession(
-        {
-          enableRecognition: true,
-          enableFaceQuality: true,
-          enableFaceAttribute: true,
-          enableInteractionLiveness: true,
-          enableLiveness: true,
-          enableMaskDetect: true,
-        },
-        DetectMode.ALWAYS_DETECT,
-        10,
-        320,
-        30
-      )
-    )
+  const session = InspireFace.createSession(
+    {
+      enableRecognition: true,
+      enableFaceQuality: true,
+      enableFaceAttribute: true,
+      enableInteractionLiveness: true,
+      enableLiveness: true,
+      enableMaskDetect: true,
+    },
+    DetectMode.ALWAYS_DETECT,
+    10,
+    -1,
+    -1
   );
+  session.setTrackPreviewSize(320);
+  session.setFaceDetectThreshold(0.5);
 
   const frameProcessor = useSkiaFrameProcessor((frame) => {
     "worklet";
@@ -120,7 +117,7 @@ export default function Example() {
     );
 
     // Unbox session and execute face detection
-    const unboxedSession = session.current.unbox();
+    const unboxedSession = session.unbox();
     const faces = unboxedSession.executeFaceTrack(imageStream);
 
     // Draw facial landmarks for each detected face
