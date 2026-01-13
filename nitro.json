@@ -12,6 +12,10 @@
       "swift": "HybridAssetManager",
       "kotlin": "HybridAssetManager"
     },
+    "ModelManager": {
+      "swift": "HybridModelManager",
+      "kotlin": "HybridModelManager"
+    },
     "InspireFace": {
       "cpp": "HybridInspireFace"
     },

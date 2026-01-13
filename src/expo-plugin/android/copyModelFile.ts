@@ -15,6 +15,11 @@ export const withCopyAndroidModelFile: ConfigPlugin<ConfigProps> = (
   return withDangerousMod(c, [
     'android',
     (config) => {
+      if (!modelName) {
+        console.info('No model name provided, skipping model file copy');
+        return config;
+      }
+
       const projectRoot = config.modRequest.projectRoot;
       const platformProjectRoot = config.modRequest.platformProjectRoot;
 

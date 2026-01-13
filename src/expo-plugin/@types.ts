@@ -4,10 +4,13 @@
  */
 export type ConfigProps = {
   /**
-   * Name of the model to be used by the plugin.
-   * This specifies which face recognition model should be loaded.
+   * Name of the model to be bundled (optional).
+   * If not specified, no model will be bundled at build time.
+   * Use launchWithRemoteModel() to download models at runtime instead.
+   *
+   * @example 'Pikachu' or 'Megatron'
    */
-  modelName: string;
+  modelName?: string;
   /**
    * Optional directory path where model files are located, relative to project root.
    * If not specified, defaults to the project root directory.

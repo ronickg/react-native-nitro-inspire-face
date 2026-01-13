@@ -8,15 +8,21 @@ const pkg = require('../../../package.json');
 /**
  * Config plugin for react-native-nitro-inspire-face
  */
-const withInspireFace: ConfigPlugin<ConfigProps> = (
-  config,
-  props = { modelName: 'Pikachu' }
-) => {
-  // Apply modifications to the config here
-  config = withPlugins(config, [
-    [withCopyAndroidModelFile, { modelName: props.modelName }],
-    [withIosModelFile, { modelName: props.modelName }],
-  ]);
+const withInspireFace: ConfigPlugin<ConfigProps> = (config, props = {}) => {
+  // Only apply model copying plugins if modelName is provided
+  // This allows users who use launchWithRemoteModel() to skip bundling models
+  if (props.modelName) {
+    config = withPlugins(config, [
+      [
+        withCopyAndroidModelFile,
+        { modelName: props.modelName, modelDir: props.modelDir },
+      ],
+      [
+        withIosModelFile,
+        { modelName: props.modelName, modelDir: props.modelDir },
+      ],
+    ]);
+  }
   return config;
 };
 

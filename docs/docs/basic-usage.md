@@ -12,7 +12,45 @@ This guide demonstrates how to initialize and use the core features of react-nat
 - Extract facial features
 - Properly manage resources
 
-Here's a complete example that covers these basic operations:
+## Loading Models
+
+You can load models in two ways:
+
+### Runtime Model Loading (Recommended)
+
+Load models at runtime from a remote URL. Models are automatically cached after the first download:
+
+```ts
+import {
+  launchWithRemoteModel,
+  DetectMode,
+  CameraRotation,
+} from 'react-native-nitro-inspire-face';
+
+// Download and launch with remote model
+await launchWithRemoteModel(
+  'https://github.com/HyperInspire/InspireFace/releases/download/v1.0.0/Pikachu',
+  '5037ba1f49905b783a1c973d5d58b834a645922cc2814c8e3ca630a38dc24431', // SHA-256 checksum
+  (progress) => {
+    console.log(`Download progress: ${(progress * 100).toFixed(0)}%`);
+  }
+);
+```
+
+### Bundled Models
+
+If you bundled models at build time using the Expo plugin:
+
+```ts
+import { InspireFace } from 'react-native-nitro-inspire-face';
+
+// Load bundled model
+InspireFace.launch('Pikachu');
+```
+
+## Face Detection Example
+
+Once you've loaded a model (using either method above), you can start detecting faces:
 
 ```ts
 import {
@@ -22,10 +60,6 @@ import {
   CameraRotation,
 } from 'react-native-nitro-inspire-face';
 
-//Load the model package of choice
-InspireFace.launch('Pikachu');
-
-// Example of face detection and feature extraction
 const initFaceDetection = () => {
   try {
     // Create a session with desired features

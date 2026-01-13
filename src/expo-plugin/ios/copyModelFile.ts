@@ -27,9 +27,14 @@ export function setModelFile({
 }: {
   project: XcodeProject;
   projectRoot: string;
-  modelName: string;
+  modelName?: string;
   modelDir?: string;
 }): XcodeProject {
+  if (!modelName) {
+    console.info('No model name provided, skipping model file copy');
+    return project;
+  }
+
   const modelFilePath = path.resolve(
     projectRoot,
     modelDir || '',

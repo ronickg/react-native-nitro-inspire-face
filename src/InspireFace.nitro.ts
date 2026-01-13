@@ -33,7 +33,20 @@ export interface InspireFace
 
   /**
    * Initialize the SDK with resources.
-   * @param path Path to resource files
+   * Automatically detects if path is a bundled asset name or absolute file path.
+   *
+   * @param path Either:
+   *   - Asset name (e.g., 'Pikachu') - copies from bundle to filesystem
+   *   - Absolute path (e.g., '/path/to/model.tar') - uses directly
+   *
+   * @example
+   * // Bundled model
+   * InspireFace.launch('Pikachu');
+   *
+   * @example
+   * // Downloaded model
+   * const modelPath = await ModelManager.downloadModel(url, checksum);
+   * InspireFace.launch(modelPath);
    */
   launch(path: string): void;
 

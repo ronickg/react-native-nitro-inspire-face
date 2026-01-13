@@ -40,24 +40,41 @@ namespace margelo::nitro::nitroinspireface
   {
     try
     {
-      // Get base directory and construct destination path
-      const std::string filesDirectory = assetManager->getFilesDirectory();
-      const std::string destPath = filesDirectory + "/" + path;
+      // Auto-detect if path is absolute (already in filesystem) or asset name (needs copying)
+      // Absolute paths start with '/' on iOS/Android
+      const bool isAbsolutePath = !path.empty() && path[0] == '/';
+      std::string launchPath;
 
-      // Copy asset file
-      if (!assetManager->copyAssetToFile(path, destPath))
+      if (isAbsolutePath)
       {
-        Logger::log(LogLevel::Error, TAG, "Failed to copy asset file to '%s'", destPath.c_str());
-        throw std::runtime_error("Failed to copy asset file");
+        // Direct filesystem path - no copying needed (e.g., downloaded models)
+        launchPath = path;
       }
-      // Log success and launch
-      Logger::log(LogLevel::Info, TAG, "Launching HybridInspireFace from: %s", destPath.c_str());
+      else
+      {
+        // Asset name - copy from bundle first (e.g., bundled models)
+        Logger::log(LogLevel::Info, TAG, "Launching InspireFace from bundled asset: %s", path.c_str());
 
-      const HResult result = HFLaunchInspireFace(destPath.c_str());
+        const std::string filesDirectory = assetManager->getFilesDirectory();
+        const std::string destPath = filesDirectory + "/" + path;
+
+        // Copy asset file
+        if (!assetManager->copyAssetToFile(path, destPath))
+        {
+          Logger::log(LogLevel::Error, TAG, "Failed to copy asset file to '%s'", destPath.c_str());
+          throw std::runtime_error("Failed to copy asset file");
+        }
+
+        Logger::log(LogLevel::Info, TAG, "Asset copied to: %s", destPath.c_str());
+        launchPath = destPath;
+      }
+
+      Logger::log(LogLevel::Info, TAG, "Launching InspireFace from path: %s", launchPath.c_str());
+      const HResult result = HFLaunchInspireFace(launchPath.c_str());
       if (result != HSUCCEED)
       {
-        Logger::log(LogLevel::Error, TAG, "Failed to launch HybridInspireFace SDK with error code: %ld", result);
-        throw std::runtime_error("Failed to launch HybridInspireFace SDK");
+        Logger::log(LogLevel::Error, TAG, "Failed to launch InspireFace SDK with error code: %ld", result);
+        throw std::runtime_error("Failed to launch InspireFace SDK");
       }
     }
     catch (const std::exception &e)
