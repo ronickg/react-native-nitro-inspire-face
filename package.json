@@ -75,7 +75,7 @@
     "react": "19.0.0",
     "react-native": "0.78.1",
     "react-native-builder-bob": "^0.39.1",
-    "react-native-nitro-modules": "^0.26.4",
+    "react-native-nitro-modules": "^0.35.0",
     "release-it": "^19.2.3",
     "turbo": "^1.10.7",
     "typescript": "^5.2.2"
