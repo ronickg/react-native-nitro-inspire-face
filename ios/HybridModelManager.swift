@@ -85,28 +85,28 @@ public class HybridModelManager: HybridModelManagerSpec {
         }
     }
 
-    public func getCachedModel(checksum: String) throws -> String? {
+    public func getCachedModel(checksum: String) throws -> Variant_NullType_String {
         let cachedFile = cacheDir.appendingPathComponent("\(checksum.lowercased()).tar")
 
         guard fileManager.fileExists(atPath: cachedFile.path) else {
-            return nil
+            return .first(())
         }
 
         do {
             let actualChecksum = try sha256(filePath: cachedFile.path)
             if actualChecksum.lowercased() == checksum.lowercased() {
                 print("[HybridModelManager] Cache hit for checksum: \(checksum)")
-                return cachedFile.path
+                return .second(cachedFile.path)
             } else {
                 // Checksum mismatch - delete corrupted file
                 print("[HybridModelManager] Cache checksum mismatch, deleting corrupted file")
                 try? fileManager.removeItem(at: cachedFile)
-                return nil
+                return .first(())
             }
         } catch {
             print("[HybridModelManager] Error verifying cached model: \(error.localizedDescription)")
             try? fileManager.removeItem(at: cachedFile)
-            return nil
+            return .first(())
         }
     }
 

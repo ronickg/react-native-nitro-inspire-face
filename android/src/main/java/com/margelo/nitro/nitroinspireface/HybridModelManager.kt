@@ -2,6 +2,7 @@ package com.margelo.nitro.nitroinspireface
 
 import com.facebook.proguard.annotations.DoNotStrip
 import com.margelo.nitro.NitroModules
+import com.margelo.nitro.core.NullType
 import com.margelo.nitro.core.Promise
 import okhttp3.*
 import java.io.File
@@ -101,27 +102,27 @@ class HybridModelManager : HybridModelManagerSpec() {
         }
     }
 
-    override fun getCachedModel(checksum: String): String? {
+    override fun getCachedModel(checksum: String): Variant_NullType_String {
         val cachedFile = File(cacheDir, "${checksum.lowercase()}.tar")
 
         if (!cachedFile.exists()) {
-            return null
+            return Variant_NullType_String.create(NullType.instance)
         }
 
         return try {
             val actualChecksum = sha256(cachedFile.absolutePath)
             if (actualChecksum.lowercase() == checksum.lowercase()) {
                 println("[HybridModelManager] Cache hit for checksum: $checksum")
-                cachedFile.absolutePath
+                Variant_NullType_String.create(cachedFile.absolutePath)
             } else {
                 println("[HybridModelManager] Cache checksum mismatch, deleting corrupted file")
                 cachedFile.delete()
-                null
+                Variant_NullType_String.create(NullType.instance)
             }
         } catch (e: Exception) {
             println("[HybridModelManager] Error verifying cached model: ${e.message}")
             cachedFile.delete()
-            null
+            Variant_NullType_String.create(NullType.instance)
         }
     }
 

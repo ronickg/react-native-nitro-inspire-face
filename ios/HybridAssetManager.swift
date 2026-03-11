@@ -7,23 +7,25 @@ public class HybridAssetManager: HybridAssetManagerSpec {
         super.init()
     }
 
-   public func getFilesDirectory() -> String {
+   public func getFilesDirectory() throws -> String {
         guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
-            fatalError("Application documents directory is unavailable")
+            throw NSError(domain: "HybridAssetManager", code: 1,
+                         userInfo: [NSLocalizedDescriptionKey: "Application documents directory is unavailable"])
         }
         return documentsDirectory.path
     }
 
-    public func getDatabasesDirectory() -> String {
+    public func getDatabasesDirectory() throws -> String {
         let fileManager = FileManager.default
         guard let libraryDirectory = fileManager.urls(for: .libraryDirectory, in: .userDomainMask).first else {
-            fatalError("Application library directory is unavailable")
+            throw NSError(domain: "HybridAssetManager", code: 1,
+                         userInfo: [NSLocalizedDescriptionKey: "Application library directory is unavailable"])
         }
 
         return libraryDirectory.path
     }
 
-    public func copyAssetToFile(assetPath: String, filePath: String) -> Bool {
+    public func copyAssetToFile(assetPath: String, filePath: String) throws -> Bool {
         let destFile = URL(fileURLWithPath: filePath)
 
         // Check if file already exists
