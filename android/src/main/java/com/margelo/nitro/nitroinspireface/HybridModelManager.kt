@@ -106,7 +106,7 @@ class HybridModelManager : HybridModelManagerSpec() {
         val cachedFile = File(cacheDir, "${checksum.lowercase()}.tar")
 
         if (!cachedFile.exists()) {
-            return Variant_NullType_String.create(NullType.instance)
+            return Variant_NullType_String.create(NullType.NULL)
         }
 
         return try {
@@ -117,12 +117,12 @@ class HybridModelManager : HybridModelManagerSpec() {
             } else {
                 println("[HybridModelManager] Cache checksum mismatch, deleting corrupted file")
                 cachedFile.delete()
-                Variant_NullType_String.create(NullType.instance)
+                Variant_NullType_String.create(NullType.NULL)
             }
         } catch (e: Exception) {
             println("[HybridModelManager] Error verifying cached model: ${e.message}")
             cachedFile.delete()
-            Variant_NullType_String.create(NullType.instance)
+            Variant_NullType_String.create(NullType.NULL)
         }
     }
 

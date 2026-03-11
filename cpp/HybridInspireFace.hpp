@@ -65,8 +65,8 @@ namespace margelo::nitro::nitroinspireface
     double featureHubFaceInsert(const FaceFeatureIdentity &feature) override;
     bool featureHubFaceUpdate(const FaceFeatureIdentity &feature) override;
     bool featureHubFaceRemove(double id) override;
-    std::optional<FaceFeatureIdentity> featureHubFaceSearch(const std::shared_ptr<ArrayBuffer> &feature) override;
-    std::optional<FaceFeatureIdentity> featureHubGetFaceIdentity(double id) override;
+    std::variant<nitro::NullType, FaceFeatureIdentity> featureHubFaceSearch(const std::shared_ptr<ArrayBuffer> &feature) override;
+    std::variant<nitro::NullType, FaceFeatureIdentity> featureHubGetFaceIdentity(double id) override;
     std::vector<SearchTopKResult> featureHubFaceSearchTopK(const std::shared_ptr<ArrayBuffer> &feature, double topK) override;
     double featureHubGetFaceCount() override;
     std::vector<double> featureHubGetExistingIds() override;

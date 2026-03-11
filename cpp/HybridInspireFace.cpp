@@ -410,7 +410,7 @@ namespace margelo::nitro::nitroinspireface
     return result == HSUCCEED;
   }
 
-  std::optional<FaceFeatureIdentity> HybridInspireFace::featureHubFaceSearch(const std::shared_ptr<ArrayBuffer> &feature)
+  std::variant<nitro::NullType, FaceFeatureIdentity> HybridInspireFace::featureHubFaceSearch(const std::shared_ptr<ArrayBuffer> &feature)
   {
     if (!feature || feature->size() == 0)
     {
@@ -443,7 +443,7 @@ namespace margelo::nitro::nitroinspireface
 
     if (result != HSUCCEED)
     {
-      return std::nullopt;
+      return nitro::NullType();
     }
 
     // Create ArrayBuffer for feature data - multiply by sizeof(float) since we need bytes
@@ -457,14 +457,14 @@ namespace margelo::nitro::nitroinspireface
         static_cast<double>(confidence));
   }
 
-  std::optional<FaceFeatureIdentity> HybridInspireFace::featureHubGetFaceIdentity(double id)
+  std::variant<nitro::NullType, FaceFeatureIdentity> HybridInspireFace::featureHubGetFaceIdentity(double id)
   {
     HFFaceFeatureIdentity identity = {};
     HResult result = HFFeatureHubGetFaceIdentity(static_cast<HFaceId>(id), &identity);
     if (result != HSUCCEED || !identity.feature)
     {
-      // If the ID doesn't exist or feature is null, return nullopt instead of throwing an exception
-      return std::nullopt;
+      // If the ID doesn't exist or feature is null, return null instead of throwing an exception
+      return nitro::NullType();
     }
 
     // Get expected feature length

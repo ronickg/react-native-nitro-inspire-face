@@ -89,7 +89,7 @@ public class HybridModelManager: HybridModelManagerSpec {
         let cachedFile = cacheDir.appendingPathComponent("\(checksum.lowercased()).tar")
 
         guard fileManager.fileExists(atPath: cachedFile.path) else {
-            return .first(())
+            return .first(.null)
         }
 
         do {
@@ -101,12 +101,12 @@ public class HybridModelManager: HybridModelManagerSpec {
                 // Checksum mismatch - delete corrupted file
                 print("[HybridModelManager] Cache checksum mismatch, deleting corrupted file")
                 try? fileManager.removeItem(at: cachedFile)
-                return .first(())
+                return .first(.null)
             }
         } catch {
             print("[HybridModelManager] Error verifying cached model: \(error.localizedDescription)")
             try? fileManager.removeItem(at: cachedFile)
-            return .first(())
+            return .first(.null)
         }
     }
 
