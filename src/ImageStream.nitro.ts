@@ -6,8 +6,10 @@ import type { ImageBitmap } from './ImageBitmap.nitro';
  * Interface for handling image stream operations.
  * Provides functionality for image stream manipulation and conversion.
  */
-export interface ImageStream
-  extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
+export interface ImageStream extends HybridObject<{
+  ios: 'c++';
+  android: 'c++';
+}> {
   /**
    * Write the image stream to a file.
    * @param filePath Path where the image will be saved
@@ -25,6 +27,16 @@ export interface ImageStream
    * @param rotation Rotation angle to apply
    */
   setRotation(rotation: CameraRotation): void;
+
+  /**
+   * Set the raw buffer for the image stream (zero-copy).
+   * Use with an empty stream for per-frame video processing
+   * to avoid allocating a new stream each frame.
+   * @param buffer Raw pixel data
+   * @param width Image width
+   * @param height Image height
+   */
+  setBuffer(buffer: ArrayBuffer, width: number, height: number): void;
 
   /**
    * Create a bitmap image from the stream.

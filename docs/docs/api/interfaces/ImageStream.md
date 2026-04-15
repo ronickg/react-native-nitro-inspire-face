@@ -96,3 +96,25 @@ createImageBitmap(isRotate?: boolean, scale?: number): ImageBitmap
 #### **Returns**
 
 - [`ImageBitmap`](./ImageBitmap.md) - The created bitmap image
+
+---
+
+### `setBuffer`
+
+Set the raw buffer for the image stream (zero-copy). Use with an empty stream created via `createEmptyImageStream()` for per-frame video processing to avoid allocating a new stream each frame.
+
+```typescript
+setBuffer(buffer: ArrayBuffer, width: number, height: number): void
+```
+
+#### **Parameters**
+
+| Name     | Type          | Description     |
+| -------- | ------------- | --------------- |
+| `buffer` | `ArrayBuffer` | Raw pixel data  |
+| `width`  | `number`      | Image width     |
+| `height` | `number`      | Image height    |
+
+#### **Returns**
+
+- `void`

@@ -18,7 +18,7 @@ enum CameraRotation {
 
 ## Values
 
-| Value          | Value | Description                                        |
+| Enum           | Value | Description                                        |
 | -------------- | ----- | -------------------------------------------------- |
 | `ROTATION_0`   | `0`   | No rotation applied to the camera feed (0 degrees) |
 | `ROTATION_90`  | `1`   | 90-degree clockwise rotation of the camera feed    |

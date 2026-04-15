@@ -60,6 +60,9 @@ namespace margelo::nitro::nitroinspireface
     std::vector<FaceAttributeResult> getFaceAttributeResult() override;
     std::vector<FaceEmotionResult> getFaceEmotionResult() override;
     std::shared_ptr<HybridImageBitmapSpec> getFaceAlignmentImage(const std::shared_ptr<HybridImageStreamSpec> &imageStream, const std::shared_ptr<ArrayBuffer> &faceToken) override;
+    double getTrackPreviewSize() override;
+    double faceQualityDetect(const std::shared_ptr<ArrayBuffer> &faceToken) override;
+    std::shared_ptr<ArrayBuffer> extractFaceFeatureFromAlignmentImage(const std::shared_ptr<HybridImageStreamSpec> &imageStream) override;
     void reconfigure(const SessionCustomParameter &parameter, DetectMode detectMode, double maxDetectFaceNum, double detectPixelLevel, double trackByDetectModeFPS) override;
 
   private:

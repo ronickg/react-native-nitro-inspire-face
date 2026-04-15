@@ -108,3 +108,37 @@ drawCircle(point: Point2i, radius: number, color: Color, thickness: number): voi
 #### **Returns**
 
 - `void`
+
+---
+
+### `writeToFile`
+
+Write the bitmap to an image file.
+
+```typescript
+writeToFile(filePath: string): void
+```
+
+#### **Parameters**
+
+| Name       | Type     | Description                        |
+| ---------- | -------- | ---------------------------------- |
+| `filePath` | `string` | Path where the image will be saved |
+
+#### **Returns**
+
+- `void`
+
+---
+
+### `copy`
+
+Create a copy of this bitmap.
+
+```typescript
+copy(): ImageBitmap
+```
+
+#### **Returns**
+
+- [`ImageBitmap`](./ImageBitmap.md) - A new bitmap with copied data

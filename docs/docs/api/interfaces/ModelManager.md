@@ -11,7 +11,7 @@ Interface for managing remote face recognition model downloads and caching. Prov
 
 ### `downloadModel`
 
-Download a model from a remote URL with progress callbacks. Downloads to a temporary location, verifies the checksum, then moves to cache.
+Download a model from a remote URL. Downloads to a temporary location, verifies the SHA-256 checksum, then moves to cache.
 
 ```typescript
 downloadModel(
@@ -40,8 +40,7 @@ downloadModel(
 ```typescript
 const path = await ModelManager.downloadModel(
   'https://r2.cloudflare.com/models/Megatron',
-  'a3f7c8d2e1b4f9a6...',
-  (bytes, total) => console.log(`${bytes}/${total}`)
+  'a3f7c8d2e1b4f9a6...'
 );
 ```
 

@@ -239,6 +239,11 @@ namespace margelo::nitro::nitroinspireface
 
   std::vector<Point2f> HybridInspireFace::getFaceDenseLandmarkFromFaceToken(const std::shared_ptr<ArrayBuffer> &token, std::optional<double> num)
   {
+    if (!token || token->size() == 0)
+    {
+      throw std::runtime_error("Invalid face token data");
+    }
+
     // Get the number of landmarks from the HybridInspireFace API if not provided
     int32_t numLandmarks = 0;
     if (num.has_value())
@@ -257,12 +262,6 @@ namespace margelo::nitro::nitroinspireface
     // Create the HFFaceBasicToken structure from our token
     HFFaceBasicToken faceToken;
     faceToken.size = static_cast<HInt32>(token->size());
-
-    // Get the raw data from the ArrayBuffer
-    if (!token || token->size() == 0)
-    {
-      throw std::runtime_error("Invalid face token data");
-    }
     faceToken.data = reinterpret_cast<void *>(token->data());
 
     // Allocate memory for landmarks
@@ -291,18 +290,17 @@ namespace margelo::nitro::nitroinspireface
 
   std::vector<Point2f> HybridInspireFace::getFaceFiveKeyPointsFromFaceToken(const std::shared_ptr<ArrayBuffer> &token, std::optional<double> num)
   {
+    if (!token || token->size() == 0)
+    {
+      throw std::runtime_error("Invalid face token data");
+    }
+
     // Default to 5 key points if not specified
     int32_t numKeyPoints = num.has_value() ? static_cast<int32_t>(num.value()) : 5;
 
     // Create the HFFaceBasicToken structure from our token
     HFFaceBasicToken faceToken;
     faceToken.size = static_cast<HInt32>(token->size());
-
-    // Get the raw data from the ArrayBuffer
-    if (!token || token->size() == 0)
-    {
-      throw std::runtime_error("Invalid face token data");
-    }
     faceToken.data = reinterpret_cast<void *>(token->data());
 
     // Allocate memory for key points
@@ -830,7 +828,141 @@ namespace margelo::nitro::nitroinspireface
     return base64_encode(reinterpret_cast<const unsigned char *>(buffer->data()), buffer->size());
   }
 
-  // Add these helper functions to FSDKApi class
+  bool HybridInspireFace::isLaunched()
+  {
+    HInt32 status = 0;
+    HResult result = HFQueryInspireFaceLaunchStatus(&status);
+    if (result != HSUCCEED)
+    {
+      return false;
+    }
+    return status != 0;
+  }
+
+  void HybridInspireFace::setLogLevel(InspireFaceLogLevel level)
+  {
+    HResult result = HFSetLogLevel(static_cast<HFLogLevel>(level));
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to set log level with error code: " + std::to_string(result));
+    }
+  }
+
+  void HybridInspireFace::logDisable()
+  {
+    HResult result = HFLogDisable();
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to disable logging with error code: " + std::to_string(result));
+    }
+  }
+
+  void HybridInspireFace::switchLandmarkEngine(LandmarkEngine engine)
+  {
+    HResult result = HFSwitchLandmarkEngine(static_cast<HFSessionLandmarkEngine>(engine));
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to switch landmark engine with error code: " + std::to_string(result));
+    }
+  }
+
+  std::vector<double> HybridInspireFace::getSupportedDetectPixelLevels()
+  {
+    HFFaceDetectPixelList pixelList = {};
+    HResult result = HFQuerySupportedPixelLevelsForFaceDetection(&pixelList);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to query supported pixel levels with error code: " + std::to_string(result));
+    }
+
+    std::vector<double> levels;
+    levels.reserve(pixelList.size);
+    for (int i = 0; i < pixelList.size; i++)
+    {
+      levels.push_back(static_cast<double>(pixelList.pixel_level[i]));
+    }
+    return levels;
+  }
+
+  std::string HybridInspireFace::getExtendedInformation()
+  {
+    HFInspireFaceExtendedInformation info = {};
+    HResult result = HFQueryInspireFaceExtendedInformation(&info);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to get extended information with error code: " + std::to_string(result));
+    }
+    return std::string(info.information);
+  }
+
+  std::shared_ptr<HybridImageStreamSpec> HybridInspireFace::createImageStream(
+      const std::shared_ptr<ArrayBuffer> &buffer, double width, double height,
+      ImageFormat format, CameraRotation rotation)
+  {
+    if (!buffer || buffer->size() == 0)
+    {
+      throw std::runtime_error("Invalid buffer data");
+    }
+
+    HFImageFormat nativeFormat;
+    switch (format)
+    {
+    case ImageFormat::RGB:
+      nativeFormat = HF_STREAM_RGB;
+      break;
+    case ImageFormat::BGR:
+      nativeFormat = HF_STREAM_BGR;
+      break;
+    case ImageFormat::RGBA:
+      nativeFormat = HF_STREAM_RGBA;
+      break;
+    case ImageFormat::BGRA:
+      nativeFormat = HF_STREAM_BGRA;
+      break;
+    case ImageFormat::YUV_NV12:
+      nativeFormat = HF_STREAM_YUV_NV12;
+      break;
+    case ImageFormat::YUV_NV21:
+      nativeFormat = HF_STREAM_YUV_NV21;
+      break;
+    case ImageFormat::I420:
+      nativeFormat = HF_STREAM_I420;
+      break;
+    case ImageFormat::GRAY:
+      nativeFormat = HF_STREAM_GRAY;
+      break;
+    default:
+      throw std::runtime_error("Unsupported image format");
+    }
+
+    HFImageData imageData;
+    imageData.data = reinterpret_cast<uint8_t *>(buffer->data());
+    imageData.width = static_cast<HInt32>(width);
+    imageData.height = static_cast<HInt32>(height);
+    imageData.format = nativeFormat;
+    imageData.rotation = static_cast<HFRotation>(rotation);
+
+    HFImageStream stream = nullptr;
+    HResult result = HFCreateImageStream(&imageData, &stream);
+    if (result != HSUCCEED || stream == nullptr)
+    {
+      throw std::runtime_error("Failed to create image stream with error code: " + std::to_string(result));
+    }
+
+    return std::make_shared<HybridImageStream>(stream);
+  }
+
+  std::shared_ptr<HybridImageStreamSpec> HybridInspireFace::createEmptyImageStream()
+  {
+    HFImageStream stream = nullptr;
+    HResult result = HFCreateImageStreamEmpty(&stream);
+    if (result != HSUCCEED || stream == nullptr)
+    {
+      throw std::runtime_error("Failed to create empty image stream with error code: " + std::to_string(result));
+    }
+    return std::make_shared<HybridImageStream>(stream);
+  }
+
   std::string HybridInspireFace::base64_encode(const unsigned char *data, size_t len)
   {
     static const char base64_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -858,24 +990,41 @@ namespace margelo::nitro::nitroinspireface
 
   std::vector<unsigned char> HybridInspireFace::base64_decode(const std::string &encoded)
   {
-    static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    static constexpr unsigned char lookup[256] = {
+        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 62,  255, 255, 255, 63,
+        52,  53,  54,  55,  56,  57,  58,  59,  60,  61,  255, 255, 255, 255, 255, 255,
+        255, 0,   1,   2,   3,   4,   5,   6,   7,   8,   9,   10,  11,  12,  13,  14,
+        15,  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  255, 255, 255, 255, 255,
+        255, 26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  36,  37,  38,  39,  40,
+        41,  42,  43,  44,  45,  46,  47,  48,  49,  50,  51,  255, 255, 255, 255, 255,
+        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255};
 
     std::vector<unsigned char> ret;
+    ret.reserve(encoded.size() * 3 / 4);
     int val = 0, valb = -8;
 
     for (unsigned char c : encoded)
     {
       if (c == '=')
         break;
-      if (base64_chars.find(c) == std::string::npos)
+      if (lookup[c] == 255)
         continue;
 
-      val = (val << 6) + base64_chars.find(c);
+      val = (val << 6) + lookup[c];
       valb += 6;
 
       if (valb >= 0)
       {
-        ret.push_back(char((val >> valb) & 0xFF));
+        ret.push_back(static_cast<unsigned char>((val >> valb) & 0xFF));
         valb -= 8;
       }
     }

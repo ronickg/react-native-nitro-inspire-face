@@ -143,6 +143,24 @@ export interface Session extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
   getFaceEmotionResult(): FaceEmotionResult[];
 
   /**
+   * Get the current track preview size.
+   */
+  getTrackPreviewSize(): number;
+
+  /**
+   * Detect the quality of a single face without running the full pipeline.
+   * @param faceToken Face token data
+   */
+  faceQualityDetect(faceToken: ArrayBuffer): number;
+
+  /**
+   * Extract face features from an already-aligned face image.
+   * Use after calling getFaceAlignmentImage() to avoid re-alignment.
+   * @param imageStream Image stream of the aligned face
+   */
+  extractFaceFeatureFromAlignmentImage(imageStream: ImageStream): ArrayBuffer;
+
+  /**
    * Reconfigure the session with new parameters.
    * Internally destroys and recreates the underlying session handle.
    * The JS object reference remains stable.

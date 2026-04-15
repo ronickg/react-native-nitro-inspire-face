@@ -43,10 +43,11 @@ namespace margelo::nitro::nitroinspireface
     std::shared_ptr<ArrayBuffer> getData() override;
 
     // Methods
-    // void writeToFile(const std::string &filePath) override;
     void drawRect(const FaceRect &rect, const Color &color, double thickness) override;
     void drawCircleF(const Point2f &point, double radius, const Color &color, double thickness) override;
     void drawCircle(const Point2i &point, double radius, const Color &color, double thickness) override;
+    void writeToFile(const std::string &filePath) override;
+    std::shared_ptr<HybridImageBitmapSpec> copy() override;
 
     // Get the native bitmap handle
     HFImageBitmap getNativeHandle() const { return _bitmap; }

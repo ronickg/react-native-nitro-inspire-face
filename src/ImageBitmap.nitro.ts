@@ -5,8 +5,10 @@ import type { Color, FaceRect, Point2f, Point2i } from './types';
  * Interface for handling bitmap image operations.
  * Provides functionality for image manipulation and drawing.
  */
-export interface ImageBitmap
-  extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
+export interface ImageBitmap extends HybridObject<{
+  ios: 'c++';
+  android: 'c++';
+}> {
   /** Width of the image in pixels */
   readonly width: number;
   /** Height of the image in pixels */
@@ -51,4 +53,15 @@ export interface ImageBitmap
     color: Color,
     thickness: number
   ): void;
+
+  /**
+   * Write the bitmap to an image file.
+   * @param filePath Path where the image will be saved
+   */
+  writeToFile(filePath: string): void;
+
+  /**
+   * Create a copy of this bitmap.
+   */
+  copy(): ImageBitmap;
 }

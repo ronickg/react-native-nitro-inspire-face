@@ -143,36 +143,57 @@ export enum ImageFormat {
 }
 
 /**
+ * Landmark engine options for face landmark detection.
+ * Different engines offer different accuracy/speed tradeoffs.
+ */
+export enum LandmarkEngine {
+  /**
+   * HypLMv2 0.25 - lightweight, fastest (default).
+   */
+  HYPLMV2_025 = 0,
+
+  /**
+   * HypLMv2 0.50 - balanced accuracy and speed.
+   */
+  HYPLMV2_050 = 1,
+
+  /**
+   * InsightFace 2D106 track - highest accuracy, heavier.
+   */
+  INSIGHTFACE_2D106 = 2,
+}
+
+/**
  * SDK built-in log level mode.
  */
-export enum LogLevel {
+export enum InspireFaceLogLevel {
   /**
    * No logging, disables all log output.
    */
-  NONE = 0,
+  LOG_NONE = 0,
 
   /**
    * Debug level for detailed system information mostly useful for developers.
    */
-  DEBUG = 1,
+  LOG_DEBUG = 1,
 
   /**
    * Information level for general system information about operational status.
    */
-  INFO = 2,
+  LOG_INFO = 2,
 
   /**
    * Warning level for non-critical issues that might need attention.
    */
-  WARN = 3,
+  LOG_WARN = 3,
 
   /**
    * Error level for error events that might still allow the application to continue running.
    */
-  ERROR = 4,
+  LOG_ERROR = 4,
 
   /**
    * Fatal level for severe error events that will presumably lead the application to abort.
    */
-  FATAL = 5,
+  LOG_FATAL = 5,
 }

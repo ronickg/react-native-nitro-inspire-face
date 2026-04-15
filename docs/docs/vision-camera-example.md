@@ -34,6 +34,7 @@ import {
   BoxedInspireFace,
   CameraRotation,
   DetectMode,
+  ImageFormat,
   InspireFace,
 } from "react-native-nitro-inspire-face";
 import { NitroModules } from "react-native-nitro-modules";
@@ -47,7 +48,30 @@ import {
 import { useResizePlugin } from "vision-camera-resize-plugin";
 
 //Launch the model package
-InspireFace.launch("Pikachu");
+InspireFace.launch("Megatron");
+
+// Create session once
+const session = InspireFace.createSession(
+  {
+    enableRecognition: true,
+    enableFaceQuality: true,
+    enableFaceAttribute: true,
+    enableInteractionLiveness: true,
+    enableLiveness: true,
+    enableMaskDetect: true,
+  },
+  DetectMode.ALWAYS_DETECT,
+  10,
+  -1,
+  -1
+);
+session.setTrackPreviewSize(320);
+session.setFaceDetectThreshold(0.5);
+
+// Create reusable stream once — zero-copy, no per-frame allocations
+const stream = InspireFace.createEmptyImageStream();
+stream.setFormat(ImageFormat.BGR);
+stream.setRotation(CameraRotation.ROTATION_0);
 
 export default function Example() {
   let device = useCameraDevice("back");
@@ -58,23 +82,6 @@ export default function Example() {
 
   const paint = Skia.Paint();
   paint.setColor(Skia.Color("blue"));
-
-  const session = InspireFace.createSession(
-    {
-      enableRecognition: true,
-      enableFaceQuality: true,
-      enableFaceAttribute: true,
-      enableInteractionLiveness: true,
-      enableLiveness: true,
-      enableMaskDetect: true,
-    },
-    DetectMode.ALWAYS_DETECT,
-    10,
-    -1,
-    -1
-  );
-  session.setTrackPreviewSize(320);
-  session.setFaceDetectThreshold(0.5);
 
   const frameProcessor = useSkiaFrameProcessor((frame) => {
     "worklet";
@@ -99,26 +106,20 @@ export default function Example() {
       mirror: true,
     });
 
-    // Unbox InspireFace instance for frame processor
+    // Unbox instances for frame processor worklet
     const unboxedInspireFace = BoxedInspireFace.unbox();
+    const unboxedSession = session.unbox();
+    const unboxedStream = stream.unbox();
 
-    // Create image bitmap from frame buffer
-    const bitmap = unboxedInspireFace.createImageBitmapFromBuffer(
+    // Zero-copy: just swap the buffer pointer, no allocations
+    unboxedStream.setBuffer(
       resized.buffer as ArrayBuffer,
       size,
-      size,
-      3
+      size
     );
 
-    // Create image stream for face detection
-    const imageStream = unboxedInspireFace.createImageStreamFromBitmap(
-      bitmap,
-      CameraRotation.ROTATION_0
-    );
-
-    // Unbox session and execute face detection
-    const unboxedSession = session.unbox();
-    const faces = unboxedSession.executeFaceTrack(imageStream);
+    // Execute face detection on the reused stream
+    const faces = unboxedSession.executeFaceTrack(unboxedStream);
 
     // Draw facial landmarks for each detected face
     for (let i = 0; i < faces.length; i++) {
@@ -136,9 +137,7 @@ export default function Example() {
       frame.drawPath(path, paint);
     }
 
-    // Clean up resources
-    imageStream.dispose();
-    bitmap.dispose();
+    // No dispose needed — stream is reused across frames
   }, []);
 
   //The CameraPermissionGuard is just a wrapper to check for permissions

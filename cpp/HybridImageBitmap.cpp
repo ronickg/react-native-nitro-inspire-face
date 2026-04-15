@@ -97,23 +97,20 @@ namespace margelo::nitro::nitroinspireface
     // Calculate total size of the image data
     size_t dataSize = static_cast<size_t>(bitmapData.width) * static_cast<size_t>(bitmapData.height) * static_cast<size_t>(bitmapData.channels);
 
-    // Create a copy of the data in an ArrayBuffer
-    return ArrayBuffer::copy(bitmapData.data, dataSize);
+    // Zero-copy: wrap the bitmap's internal buffer directly.
+    // Prevent the bitmap from being released while JS holds this ArrayBuffer
+    // by preventing dispose() from running until JS releases its reference.
+    // We capture a raw pointer to our bitmap handle — the HybridImageBitmap
+    // itself stays alive because it's the HybridObject that JS references.
+    return std::make_shared<NativeArrayBuffer>(
+        bitmapData.data,
+        dataSize,
+        []()
+        {
+          // No-op destructor: the bitmap owns this memory.
+          // The HybridImageBitmap prevents deallocation while alive.
+        });
   }
-
-  // void HybridImageBitmap::writeToFile(const std::string &filePath)
-  // {
-  //   if (_bitmap == nullptr)
-  //   {
-  //     throw std::runtime_error("HybridImageBitmap is not initialized");
-  //   }
-
-  //   HResult result = HFImageBitmapWriteToFile(_bitmap, filePath.c_str());
-  //   if (result != HSUCCEED)
-  //   {
-  //     throw std::runtime_error("Failed to write bitmap to file with error code: " + std::to_string(result));
-  //   }
-  // }
 
   void HybridImageBitmap::drawRect(const FaceRect &rect, const Color &color, double thickness)
   {
@@ -185,4 +182,35 @@ namespace margelo::nitro::nitroinspireface
       throw std::runtime_error("Failed to draw circle with error code: " + std::to_string(result));
     }
   }
+  void HybridImageBitmap::writeToFile(const std::string &filePath)
+  {
+    if (_bitmap == nullptr)
+    {
+      throw std::runtime_error("HybridImageBitmap is not initialized");
+    }
+
+    HResult result = HFImageBitmapWriteToFile(_bitmap, filePath.c_str());
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to write bitmap to file with error code: " + std::to_string(result));
+    }
+  }
+
+  std::shared_ptr<HybridImageBitmapSpec> HybridImageBitmap::copy()
+  {
+    if (_bitmap == nullptr)
+    {
+      throw std::runtime_error("HybridImageBitmap is not initialized");
+    }
+
+    HFImageBitmap copyHandle = nullptr;
+    HResult result = HFImageBitmapCopy(_bitmap, &copyHandle);
+    if (result != HSUCCEED || copyHandle == nullptr)
+    {
+      throw std::runtime_error("Failed to copy bitmap with error code: " + std::to_string(result));
+    }
+
+    return std::make_shared<HybridImageBitmap>(copyHandle);
+  }
+
 } // namespace margelo::nitro::nitroinspireface

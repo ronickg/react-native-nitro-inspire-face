@@ -16,6 +16,8 @@ type SessionCustomParameter = {
   enableFaceAttribute?: boolean;
   enableInteractionLiveness?: boolean;
   enableDetectModeLandmark?: boolean;
+  enableFacePose?: boolean;
+  enableFaceEmotion?: boolean;
 };
 ```
 
@@ -31,3 +33,5 @@ type SessionCustomParameter = {
 | `enableFaceAttribute`       | `boolean` | _(Optional)_ Enable face attribute prediction feature. Default to `false`          |
 | `enableInteractionLiveness` | `boolean` | _(Optional)_ Enable interaction for liveness detection feature. Default to `false` |
 | `enableDetectModeLandmark`  | `boolean` | _(Optional)_ Enable landmark detection in detection mode. Default to `false`       |
+| `enableFacePose`            | `boolean` | _(Optional)_ Enable face pose estimation feature. Default to `false`               |
+| `enableFaceEmotion`         | `boolean` | _(Optional)_ Enable face emotion recognition feature. Default to `false`           |

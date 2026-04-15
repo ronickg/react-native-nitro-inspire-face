@@ -5,6 +5,7 @@
 #include "ImageFormat.hpp"
 #include "CameraRotation.hpp"
 #include "HybridImageBitmapSpec.hpp"
+#include <NitroModules/ArrayBuffer.hpp>
 #include <memory>
 #include <optional>
 
@@ -37,6 +38,7 @@ namespace margelo::nitro::nitroinspireface
   public:
     // Methods
     void writeImageToFile(const std::string &filePath) override;
+    void setBuffer(const std::shared_ptr<ArrayBuffer> &buffer, double width, double height) override;
     void setFormat(ImageFormat format) override;
     void setRotation(CameraRotation rotation) override;
     std::shared_ptr<HybridImageBitmapSpec> createImageBitmap(std::optional<bool> isRotate = std::nullopt, std::optional<double> scale = std::nullopt) override;

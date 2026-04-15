@@ -45,6 +45,29 @@ namespace margelo::nitro::nitroinspireface
     }
   }
 
+  void HybridImageStream::setBuffer(const std::shared_ptr<ArrayBuffer> &buffer, double width, double height)
+  {
+    if (_stream == nullptr)
+    {
+      throw std::runtime_error("HybridImageStream is not initialized");
+    }
+
+    if (!buffer || buffer->size() == 0)
+    {
+      throw std::runtime_error("Invalid buffer data");
+    }
+
+    HResult result = HFImageStreamSetBuffer(
+        _stream,
+        reinterpret_cast<uint8_t *>(buffer->data()),
+        static_cast<HInt32>(width),
+        static_cast<HInt32>(height));
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to set image stream buffer with error code: " + std::to_string(result));
+    }
+  }
+
   void HybridImageStream::setFormat(ImageFormat format)
   {
     if (_stream == nullptr)
@@ -72,6 +95,12 @@ namespace margelo::nitro::nitroinspireface
       break;
     case ImageFormat::YUV_NV21:
       nativeFormat = HF_STREAM_YUV_NV21;
+      break;
+    case ImageFormat::I420:
+      nativeFormat = HF_STREAM_I420;
+      break;
+    case ImageFormat::GRAY:
+      nativeFormat = HF_STREAM_GRAY;
       break;
     default:
       throw std::runtime_error("Unsupported image format");

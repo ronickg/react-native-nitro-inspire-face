@@ -12,6 +12,9 @@
 #include "HybridImageStream.hpp"
 #include "inspireface.h"
 #include "HybridAssetManagerSpec.hpp"
+#include "ImageFormat.hpp"
+#include "InspireFaceLogLevel.hpp"
+#include "LandmarkEngine.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
 #include <NitroModules/NitroLogger.hpp>
 #include "FaceFeatureIdentity.hpp"
@@ -85,6 +88,16 @@ namespace margelo::nitro::nitroinspireface
     bool checkCudaDeviceSupport() override;
     std::shared_ptr<ArrayBuffer> fromBase64(const std::string &base64) override;
     std::string toBase64(const std::shared_ptr<ArrayBuffer> &buffer) override;
+    bool isLaunched() override;
+    void setLogLevel(InspireFaceLogLevel level) override;
+    void logDisable() override;
+    void switchLandmarkEngine(LandmarkEngine engine) override;
+    std::vector<double> getSupportedDetectPixelLevels() override;
+    std::string getExtendedInformation() override;
+    std::shared_ptr<HybridImageStreamSpec> createImageStream(
+        const std::shared_ptr<ArrayBuffer> &buffer, double width, double height,
+        ImageFormat format, CameraRotation rotation) override;
+    std::shared_ptr<HybridImageStreamSpec> createEmptyImageStream() override;
   };
 
 } // namespace margelo::nitro::nitroinspireface

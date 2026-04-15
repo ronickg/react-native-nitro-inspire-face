@@ -10,13 +10,36 @@ All features are powered by the underlying [InspireFace C++ SDK](https://github.
 
 - Face detection and tracking
 - Face recognition and comparison
-- Facial landmarks detection
+- Facial landmarks detection (106-point dense + 5-point key)
 - Face quality assessment
 - Mask detection
 - Liveness detection (both silent and cooperative)
-- Face attribute analysis
+- Face attribute analysis (age, gender, race)
+- Face emotion recognition
 - Face pose estimation
-- Face embedding management
+- Face embedding management (FeatureHub with search, insert, update, remove)
+- Zero-copy camera frame processing via `createEmptyImageStream()` + `setBuffer()`
+- Configurable landmark engines (HypLMv2, InsightFace)
+- Apple CoreML / CUDA hardware acceleration
+- SDK log level control
+
+## Zero-Copy Video Processing
+
+For real-time camera feeds, avoid per-frame allocations by reusing a single stream:
+
+```typescript
+// Create once
+const stream = InspireFace.createEmptyImageStream();
+stream.setFormat(ImageFormat.YUV_NV21);
+stream.setRotation(CameraRotation.ROTATION_90);
+
+// Each frame — just swaps the pointer, zero allocations
+stream.setBuffer(frameBuffer, width, height);
+const faces = session.executeFaceTrack(stream);
+
+// Clean up when done
+stream.dispose();
+```
 
 ## Documentation
 

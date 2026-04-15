@@ -348,67 +348,49 @@ namespace margelo::nitro::nitroinspireface
     // Set the number of faces
     hfFaces.detectedNum = static_cast<HInt32>(multipleFaceData.size());
 
+    // Use vectors for RAII-safe memory management
+    std::vector<HFaceRect> rects(hfFaces.detectedNum);
+    std::vector<HInt32> trackIds(hfFaces.detectedNum);
+    std::vector<HInt32> trackCounts(hfFaces.detectedNum);
+    std::vector<HFloat> detConfidence(hfFaces.detectedNum);
+    std::vector<HFFaceBasicToken> tokens(hfFaces.detectedNum);
+    std::vector<HFloat> roll(hfFaces.detectedNum);
+    std::vector<HFloat> yaw(hfFaces.detectedNum);
+    std::vector<HFloat> pitch(hfFaces.detectedNum);
+
     if (hfFaces.detectedNum > 0)
     {
-      // Allocate arrays for face data
-      hfFaces.rects = new HFaceRect[hfFaces.detectedNum];
-      hfFaces.trackIds = new HInt32[hfFaces.detectedNum];
-      hfFaces.trackCounts = new HInt32[hfFaces.detectedNum];
-      hfFaces.detConfidence = new HFloat[hfFaces.detectedNum];
-      hfFaces.tokens = new HFFaceBasicToken[hfFaces.detectedNum];
-
-      // Allocate angle data
-      hfFaces.angles.roll = new HFloat[hfFaces.detectedNum];
-      hfFaces.angles.yaw = new HFloat[hfFaces.detectedNum];
-      hfFaces.angles.pitch = new HFloat[hfFaces.detectedNum];
-
-      // Copy data from FaceData vector to HFMultipleFaceData
       for (int i = 0; i < hfFaces.detectedNum; i++)
       {
-        // Copy rect
-        hfFaces.rects[i].x = static_cast<HInt32>(multipleFaceData[i].rect.x);
-        hfFaces.rects[i].y = static_cast<HInt32>(multipleFaceData[i].rect.y);
-        hfFaces.rects[i].width = static_cast<HInt32>(multipleFaceData[i].rect.width);
-        hfFaces.rects[i].height = static_cast<HInt32>(multipleFaceData[i].rect.height);
+        rects[i].x = static_cast<HInt32>(multipleFaceData[i].rect.x);
+        rects[i].y = static_cast<HInt32>(multipleFaceData[i].rect.y);
+        rects[i].width = static_cast<HInt32>(multipleFaceData[i].rect.width);
+        rects[i].height = static_cast<HInt32>(multipleFaceData[i].rect.height);
 
-        // Copy track ID and track count
-        hfFaces.trackIds[i] = static_cast<HInt32>(multipleFaceData[i].trackId);
-        hfFaces.trackCounts[i] = static_cast<HInt32>(multipleFaceData[i].trackCount);
+        trackIds[i] = static_cast<HInt32>(multipleFaceData[i].trackId);
+        trackCounts[i] = static_cast<HInt32>(multipleFaceData[i].trackCount);
+        detConfidence[i] = static_cast<HFloat>(multipleFaceData[i].detConfidence);
 
-        // Copy detection confidence
-        hfFaces.detConfidence[i] = static_cast<HFloat>(multipleFaceData[i].detConfidence);
+        roll[i] = static_cast<HFloat>(multipleFaceData[i].angle.roll);
+        yaw[i] = static_cast<HFloat>(multipleFaceData[i].angle.yaw);
+        pitch[i] = static_cast<HFloat>(multipleFaceData[i].angle.pitch);
 
-        // Copy angles
-        hfFaces.angles.roll[i] = static_cast<HFloat>(multipleFaceData[i].angle.roll);
-        hfFaces.angles.yaw[i] = static_cast<HFloat>(multipleFaceData[i].angle.yaw);
-        hfFaces.angles.pitch[i] = static_cast<HFloat>(multipleFaceData[i].angle.pitch);
-
-        // Copy token
-        hfFaces.tokens[i].size = static_cast<HInt32>(multipleFaceData[i].token->size());
-        hfFaces.tokens[i].data = multipleFaceData[i].token->data();
+        tokens[i].size = static_cast<HInt32>(multipleFaceData[i].token->size());
+        tokens[i].data = multipleFaceData[i].token->data();
       }
+
+      hfFaces.rects = rects.data();
+      hfFaces.trackIds = trackIds.data();
+      hfFaces.trackCounts = trackCounts.data();
+      hfFaces.detConfidence = detConfidence.data();
+      hfFaces.tokens = tokens.data();
+      hfFaces.angles.roll = roll.data();
+      hfFaces.angles.yaw = yaw.data();
+      hfFaces.angles.pitch = pitch.data();
     }
 
     // Process the faces
     HResult result = HFMultipleFacePipelineProcess(_session, nitroImageStream->getNativeHandle(), &hfFaces, hfParam);
-
-    // Clean up allocated memory
-    if (hfFaces.rects)
-      delete[] hfFaces.rects;
-    if (hfFaces.trackIds)
-      delete[] hfFaces.trackIds;
-    if (hfFaces.trackCounts)
-      delete[] hfFaces.trackCounts;
-    if (hfFaces.detConfidence)
-      delete[] hfFaces.detConfidence;
-    if (hfFaces.tokens)
-      delete[] hfFaces.tokens;
-    if (hfFaces.angles.roll)
-      delete[] hfFaces.angles.roll;
-    if (hfFaces.angles.yaw)
-      delete[] hfFaces.angles.yaw;
-    if (hfFaces.angles.pitch)
-      delete[] hfFaces.angles.pitch;
 
     if (result != HSUCCEED)
     {
@@ -680,6 +662,89 @@ namespace margelo::nitro::nitroinspireface
     }
 
     return std::make_shared<HybridImageBitmap>(alignedBitmap);
+  }
+
+  double HybridSession::getTrackPreviewSize()
+  {
+    if (_session == nullptr)
+    {
+      throw std::runtime_error("HybridSession is not initialized");
+    }
+
+    HInt32 previewSize = 0;
+    HResult result = HFSessionGetTrackPreviewSize(_session, &previewSize);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to get track preview size with error code: " + std::to_string(result));
+    }
+    return static_cast<double>(previewSize);
+  }
+
+  double HybridSession::faceQualityDetect(const std::shared_ptr<ArrayBuffer> &faceToken)
+  {
+    if (_session == nullptr)
+    {
+      throw std::runtime_error("HybridSession is not initialized");
+    }
+
+    if (!faceToken || faceToken->size() == 0)
+    {
+      throw std::runtime_error("Invalid face token data");
+    }
+
+    HFFaceBasicToken token = {};
+    token.size = static_cast<HInt32>(faceToken->size());
+    token.data = faceToken->data();
+
+    HFloat confidence = 0;
+    HResult result = HFFaceQualityDetect(_session, token, &confidence);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to detect face quality with error code: " + std::to_string(result));
+    }
+    return static_cast<double>(confidence);
+  }
+
+  std::shared_ptr<ArrayBuffer> HybridSession::extractFaceFeatureFromAlignmentImage(const std::shared_ptr<HybridImageStreamSpec> &imageStream)
+  {
+    if (_session == nullptr)
+    {
+      throw std::runtime_error("HybridSession is not initialized");
+    }
+
+    if (!imageStream)
+    {
+      throw std::runtime_error("Image stream is null");
+    }
+
+    auto nitroImageStream = std::dynamic_pointer_cast<HybridImageStream>(imageStream);
+    if (!nitroImageStream)
+    {
+      throw std::runtime_error("Failed to cast to HybridImageStream");
+    }
+
+    // Get expected feature length and pre-allocate
+    HInt32 expectedLength = 0;
+    HResult lengthResult = HFGetFeatureLength(&expectedLength);
+    if (lengthResult != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to get feature length");
+    }
+
+    HFFaceFeature feature = {};
+    feature.size = expectedLength;
+    std::vector<float> featureData(expectedLength);
+    feature.data = featureData.data();
+
+    HResult result = HFFaceFeatureExtractWithAlignmentImage(_session, nitroImageStream->getNativeHandle(), feature);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to extract face feature from alignment image with error code: " + std::to_string(result));
+    }
+
+    return ArrayBuffer::copy(
+        reinterpret_cast<uint8_t *>(feature.data),
+        feature.size * sizeof(float));
   }
 
   void HybridSession::reconfigure(const SessionCustomParameter &parameter, DetectMode detectMode, double maxDetectFaceNum, double detectPixelLevel, double trackByDetectModeFPS)

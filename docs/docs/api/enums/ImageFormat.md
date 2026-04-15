@@ -15,6 +15,8 @@ enum ImageFormat {
   BGRA = 3,
   YUV_NV12 = 4,
   YUV_NV21 = 5,
+  I420 = 6,
+  GRAY = 7,
 }
 ```
 
@@ -28,3 +30,5 @@ enum ImageFormat {
 | `BGRA`     | `3`   | BGR color format with alpha channel (4 channels)                           |
 | `YUV_NV12` | `4`   | YUV color format with NV12 layout, commonly used in video processing       |
 | `YUV_NV21` | `5`   | YUV color format with NV21 layout, commonly used in Android camera outputs |
+| `I420`     | `6`   | YUV color format with I420 (YV12) planar layout                           |
+| `GRAY`     | `7`   | Single-channel grayscale format                                            |

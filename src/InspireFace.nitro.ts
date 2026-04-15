@@ -3,6 +3,9 @@ import type {
   AppleCoreMLInferenceMode,
   CameraRotation,
   DetectMode,
+  ImageFormat,
+  InspireFaceLogLevel,
+  LandmarkEngine,
 } from './enums';
 import type { ImageBitmap } from './ImageBitmap.nitro';
 import type { ImageStream } from './ImageStream.nitro';
@@ -20,8 +23,10 @@ import type {
  * Main interface for the InspireFace SDK functionality.
  * Provides comprehensive face detection, recognition, and analysis capabilities.
  */
-export interface InspireFace
-  extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
+export interface InspireFace extends HybridObject<{
+  ios: 'c++';
+  android: 'c++';
+}> {
   /** Version string of the SDK */
   readonly version: string;
   /** Length of face feature vectors */
@@ -281,4 +286,65 @@ export interface InspireFace
    * @param buffer ArrayBuffer to convert
    */
   toBase64(buffer: ArrayBuffer): string;
+
+  /**
+   * Check if the InspireFace SDK has been launched.
+   */
+  isLaunched(): boolean;
+
+  /**
+   * Set the SDK log level.
+   * @param level Log level to set
+   */
+  setLogLevel(level: InspireFaceLogLevel): void;
+
+  /**
+   * Disable SDK logging entirely.
+   */
+  logDisable(): void;
+
+  /**
+   * Switch the landmark detection engine globally.
+   * Must be called before creating a session. If changed, a new session
+   * needs to be created for it to take effect.
+   * @param engine Landmark engine to use
+   */
+  switchLandmarkEngine(engine: LandmarkEngine): void;
+
+  /**
+   * Query the supported pixel levels for face detection.
+   * Must be called before launching the SDK.
+   */
+  getSupportedDetectPixelLevels(): number[];
+
+  /**
+   * Get extended information about the SDK build.
+   */
+  getExtendedInformation(): string;
+
+  /**
+   * Create an image stream directly from a raw buffer.
+   * @param buffer Raw image data
+   * @param width Image width
+   * @param height Image height
+   * @param format Image pixel format
+   * @param rotation Camera rotation
+   */
+  createImageStream(
+    buffer: ArrayBuffer,
+    width: number,
+    height: number,
+    format: ImageFormat,
+    rotation: CameraRotation
+  ): ImageStream;
+
+  /**
+   * Create an empty image stream for reuse with setBuffer().
+   * Use this for zero-copy per-frame video processing:
+   * 1. Create once with createEmptyImageStream()
+   * 2. Each frame: stream.setBuffer(frameData, w, h)
+   * 3. Then: stream.setFormat(...), stream.setRotation(...)
+   * 4. Then: session.executeFaceTrack(stream)
+   */
+  createEmptyImageStream(): ImageStream;
 }

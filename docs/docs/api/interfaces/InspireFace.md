@@ -713,3 +713,148 @@ toBase64(buffer: ArrayBuffer): string
 #### **Returns**
 
 - `string` - Base64 string
+
+---
+
+### `isLaunched`
+
+Check if the InspireFace SDK has been launched.
+
+```typescript
+isLaunched(): boolean
+```
+
+#### **Returns**
+
+- `boolean` - `true` if the SDK is launched
+
+---
+
+### `setLogLevel`
+
+Set the SDK log level.
+
+```typescript
+setLogLevel(level: InspireFaceLogLevel): void
+```
+
+#### **Parameters**
+
+| Name    | Type                  | Description      |
+| ------- | --------------------- | ---------------- |
+| `level` | `InspireFaceLogLevel` | Log level to set |
+
+#### **Returns**
+
+- `void`
+
+---
+
+### `logDisable`
+
+Disable SDK logging entirely.
+
+```typescript
+logDisable(): void
+```
+
+#### **Returns**
+
+- `void`
+
+---
+
+### `switchLandmarkEngine`
+
+Switch the landmark detection engine globally. Must be called before creating a session. If changed, a new session needs to be created for it to take effect.
+
+```typescript
+switchLandmarkEngine(engine: LandmarkEngine): void
+```
+
+#### **Parameters**
+
+| Name     | Type             | Description              |
+| -------- | ---------------- | ------------------------ |
+| `engine` | `LandmarkEngine` | Landmark engine to use   |
+
+#### **Returns**
+
+- `void`
+
+---
+
+### `getSupportedDetectPixelLevels`
+
+Query the supported pixel levels for face detection.
+
+```typescript
+getSupportedDetectPixelLevels(): number[]
+```
+
+#### **Returns**
+
+- `number[]` - Array of supported pixel levels (e.g. `[160, 320, 640]`)
+
+---
+
+### `getExtendedInformation`
+
+Get extended information about the SDK build.
+
+```typescript
+getExtendedInformation(): string
+```
+
+#### **Returns**
+
+- `string` - SDK build information
+
+---
+
+### `createImageStream`
+
+Create an image stream directly from a raw buffer. Useful for processing camera frames.
+
+```typescript
+createImageStream(
+  buffer: ArrayBuffer,
+  width: number,
+  height: number,
+  format: ImageFormat,
+  rotation: CameraRotation
+): ImageStream
+```
+
+#### **Parameters**
+
+| Name       | Type             | Description          |
+| ---------- | ---------------- | -------------------- |
+| `buffer`   | `ArrayBuffer`    | Raw image data       |
+| `width`    | `number`         | Image width          |
+| `height`   | `number`         | Image height         |
+| `format`   | `ImageFormat`    | Image pixel format   |
+| `rotation` | `CameraRotation` | Camera rotation      |
+
+#### **Returns**
+
+- [`ImageStream`](./ImageStream.md) - The created image stream
+
+---
+
+### `createEmptyImageStream`
+
+Create an empty image stream for reuse with `setBuffer()`. Use this for zero-copy per-frame video processing:
+
+1. Create once with `createEmptyImageStream()`
+2. Each frame: `stream.setBuffer(frameData, w, h)`
+3. Then: `stream.setFormat(...)`, `stream.setRotation(...)`
+4. Then: `session.executeFaceTrack(stream)`
+
+```typescript
+createEmptyImageStream(): ImageStream
+```
+
+#### **Returns**
+
+- [`ImageStream`](./ImageStream.md) - An empty reusable image stream
