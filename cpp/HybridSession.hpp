@@ -4,9 +4,11 @@
 #include "HybridImageStreamSpec.hpp"
 #include "HybridImageBitmap.hpp"
 #include "SessionCustomParameter.hpp"
+#include "DetectMode.hpp"
 #include "FaceInteractionState.hpp"
 #include "FaceInteractionsAction.hpp"
 #include "FaceAttributeResult.hpp"
+#include "FaceEmotionResult.hpp"
 #include "FaceData.hpp"
 #include "inspireface.h"
 #include <NitroModules/ArrayBuffer.hpp>
@@ -44,6 +46,9 @@ namespace margelo::nitro::nitroinspireface
     void setTrackModeSmoothRatio(double ratio) override;
     void setTrackModeNumSmoothCacheFrame(double num) override;
     void setTrackModeDetectInterval(double num) override;
+    void setTrackLostRecoveryMode(bool enable) override;
+    void setLightTrackConfidenceThreshold(double value) override;
+    void clearTrackingFace() override;
     std::vector<FaceData> executeFaceTrack(const std::shared_ptr<HybridImageStreamSpec> &imageStream) override;
     std::shared_ptr<ArrayBuffer> extractFaceFeature(const std::shared_ptr<HybridImageStreamSpec> &imageStream, const std::shared_ptr<ArrayBuffer> &faceToken) override;
     bool multipleFacePipelineProcess(const std::shared_ptr<HybridImageStreamSpec> &imageStream, const std::vector<FaceData> &multipleFaceData, const SessionCustomParameter &parameter) override;
@@ -53,7 +58,9 @@ namespace margelo::nitro::nitroinspireface
     std::vector<FaceInteractionState> getFaceInteractionState() override;
     std::vector<FaceInteractionsAction> getFaceInteractionActionsResult() override;
     std::vector<FaceAttributeResult> getFaceAttributeResult() override;
+    std::vector<FaceEmotionResult> getFaceEmotionResult() override;
     std::shared_ptr<HybridImageBitmapSpec> getFaceAlignmentImage(const std::shared_ptr<HybridImageStreamSpec> &imageStream, const std::shared_ptr<ArrayBuffer> &faceToken) override;
+    void reconfigure(const SessionCustomParameter &parameter, DetectMode detectMode, double maxDetectFaceNum, double detectPixelLevel, double trackByDetectModeFPS) override;
 
   private:
     HFSession _session;

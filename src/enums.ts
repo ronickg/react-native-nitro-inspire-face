@@ -130,6 +130,16 @@ export enum ImageFormat {
    * Image in YUV NV21 format.
    */
   YUV_NV21 = 5,
+
+  /**
+   * Image in I420 format.
+   */
+  I420 = 6,
+
+  /**
+   * Image in GRAY format.
+   */
+  GRAY = 7,
 }
 
 /**

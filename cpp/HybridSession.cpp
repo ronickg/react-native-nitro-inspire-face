@@ -10,6 +10,7 @@
 #include "FaceInteractionState.hpp"
 #include "FaceInteractionsAction.hpp"
 #include "FaceAttributeResult.hpp"
+#include "FaceEmotionResult.hpp"
 #include "HybridImageStream.hpp"
 #include <memory>
 #include <vector>
@@ -123,6 +124,48 @@ namespace margelo::nitro::nitroinspireface
     }
   }
 
+  void HybridSession::setTrackLostRecoveryMode(bool enable)
+  {
+    if (_session == nullptr)
+    {
+      throw std::runtime_error("HybridSession is not initialized");
+    }
+
+    HResult result = HFSessionSetTrackLostRecoveryMode(_session, enable ? 1 : 0);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to set track lost recovery mode with error code: " + std::to_string(result));
+    }
+  }
+
+  void HybridSession::setLightTrackConfidenceThreshold(double value)
+  {
+    if (_session == nullptr)
+    {
+      throw std::runtime_error("HybridSession is not initialized");
+    }
+
+    HResult result = HFSessionSetLightTrackConfidenceThreshold(_session, static_cast<HFloat>(value));
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to set light track confidence threshold with error code: " + std::to_string(result));
+    }
+  }
+
+  void HybridSession::clearTrackingFace()
+  {
+    if (_session == nullptr)
+    {
+      throw std::runtime_error("HybridSession is not initialized");
+    }
+
+    HResult result = HFSessionClearTrackingFace(_session);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to clear tracking face with error code: " + std::to_string(result));
+    }
+  }
+
   std::vector<FaceData> HybridSession::executeFaceTrack(const std::shared_ptr<HybridImageStreamSpec> &imageStream)
   {
     if (!_session)
@@ -166,8 +209,9 @@ namespace margelo::nitro::nitroinspireface
             static_cast<double>(results.rects[i].width),
             static_cast<double>(results.rects[i].height));
 
-        // Extract track ID and confidence
+        // Extract track ID, track count, and confidence
         double trackId = static_cast<double>(results.trackIds[i]);
+        double trackCount = static_cast<double>(results.trackCounts[i]);
         double detConfidence = static_cast<double>(results.detConfidence[i]);
 
         // Construct FaceEulerAngle
@@ -197,7 +241,7 @@ namespace margelo::nitro::nitroinspireface
         }
 
         // Add FaceData to vector
-        faceDataVector.emplace_back(rect, trackId, detConfidence, angles, buffer);
+        faceDataVector.emplace_back(rect, trackId, trackCount, detConfidence, angles, buffer);
       }
     }
 
@@ -286,14 +330,16 @@ namespace margelo::nitro::nitroinspireface
 
     // Convert SessionCustomParameter to HFSessionCustomParameter
     HFSessionCustomParameter hfParam;
-    hfParam.enable_recognition = parameter.enableRecognition ? 1 : 0;
-    hfParam.enable_liveness = parameter.enableLiveness ? 1 : 0;
-    hfParam.enable_ir_liveness = parameter.enableIrLiveness ? 1 : 0;
-    hfParam.enable_mask_detect = parameter.enableMaskDetect ? 1 : 0;
-    hfParam.enable_face_quality = parameter.enableFaceQuality ? 1 : 0;
-    hfParam.enable_face_attribute = parameter.enableFaceAttribute ? 1 : 0;
-    hfParam.enable_interaction_liveness = parameter.enableInteractionLiveness ? 1 : 0;
-    hfParam.enable_detect_mode_landmark = parameter.enableDetectModeLandmark ? 1 : 0;
+    hfParam.enable_recognition = parameter.enableRecognition.value_or(false) ? 1 : 0;
+    hfParam.enable_liveness = parameter.enableLiveness.value_or(false) ? 1 : 0;
+    hfParam.enable_ir_liveness = parameter.enableIrLiveness.value_or(false) ? 1 : 0;
+    hfParam.enable_mask_detect = parameter.enableMaskDetect.value_or(false) ? 1 : 0;
+    hfParam.enable_face_quality = parameter.enableFaceQuality.value_or(false) ? 1 : 0;
+    hfParam.enable_face_attribute = parameter.enableFaceAttribute.value_or(false) ? 1 : 0;
+    hfParam.enable_interaction_liveness = parameter.enableInteractionLiveness.value_or(false) ? 1 : 0;
+    hfParam.enable_detect_mode_landmark = parameter.enableDetectModeLandmark.value_or(false) ? 1 : 0;
+    hfParam.enable_face_pose = parameter.enableFacePose.value_or(false) ? 1 : 0;
+    hfParam.enable_face_emotion = parameter.enableFaceEmotion.value_or(false) ? 1 : 0;
 
     // Convert vector<FaceData> to HFMultipleFaceData
     HFMultipleFaceData hfFaces = {};
@@ -307,6 +353,7 @@ namespace margelo::nitro::nitroinspireface
       // Allocate arrays for face data
       hfFaces.rects = new HFaceRect[hfFaces.detectedNum];
       hfFaces.trackIds = new HInt32[hfFaces.detectedNum];
+      hfFaces.trackCounts = new HInt32[hfFaces.detectedNum];
       hfFaces.detConfidence = new HFloat[hfFaces.detectedNum];
       hfFaces.tokens = new HFFaceBasicToken[hfFaces.detectedNum];
 
@@ -324,8 +371,9 @@ namespace margelo::nitro::nitroinspireface
         hfFaces.rects[i].width = static_cast<HInt32>(multipleFaceData[i].rect.width);
         hfFaces.rects[i].height = static_cast<HInt32>(multipleFaceData[i].rect.height);
 
-        // Copy track ID
+        // Copy track ID and track count
         hfFaces.trackIds[i] = static_cast<HInt32>(multipleFaceData[i].trackId);
+        hfFaces.trackCounts[i] = static_cast<HInt32>(multipleFaceData[i].trackCount);
 
         // Copy detection confidence
         hfFaces.detConfidence[i] = static_cast<HFloat>(multipleFaceData[i].detConfidence);
@@ -349,6 +397,8 @@ namespace margelo::nitro::nitroinspireface
       delete[] hfFaces.rects;
     if (hfFaces.trackIds)
       delete[] hfFaces.trackIds;
+    if (hfFaces.trackCounts)
+      delete[] hfFaces.trackCounts;
     if (hfFaces.detConfidence)
       delete[] hfFaces.detConfidence;
     if (hfFaces.tokens)
@@ -566,6 +616,36 @@ namespace margelo::nitro::nitroinspireface
     return attributeValues;
   }
 
+  std::vector<FaceEmotionResult> HybridSession::getFaceEmotionResult()
+  {
+    if (_session == nullptr)
+    {
+      Logger::log(LogLevel::Error, "HybridSession", "HybridSession is not initialized");
+      return std::vector<FaceEmotionResult>();
+    }
+
+    HFFaceEmotionResult results = {};
+    HResult result = HFGetFaceEmotionResult(_session, &results);
+    if (result != HSUCCEED)
+    {
+      Logger::log(LogLevel::Error, "HybridSession", "Failed to get face emotion results, error code: %ld", result);
+      return std::vector<FaceEmotionResult>();
+    }
+
+    std::vector<FaceEmotionResult> emotionValues;
+    if (results.num > 0 && results.emotion != nullptr)
+    {
+      emotionValues.reserve(results.num);
+      for (int i = 0; i < results.num; i++)
+      {
+        emotionValues.push_back(FaceEmotionResult(
+            static_cast<double>(results.emotion[i])));
+      }
+    }
+
+    return emotionValues;
+  }
+
   std::shared_ptr<HybridImageBitmapSpec> HybridSession::getFaceAlignmentImage(const std::shared_ptr<HybridImageStreamSpec> &imageStream, const std::shared_ptr<ArrayBuffer> &faceToken)
   {
     if (_session == nullptr)
@@ -600,6 +680,43 @@ namespace margelo::nitro::nitroinspireface
     }
 
     return std::make_shared<HybridImageBitmap>(alignedBitmap);
+  }
+
+  void HybridSession::reconfigure(const SessionCustomParameter &parameter, DetectMode detectMode, double maxDetectFaceNum, double detectPixelLevel, double trackByDetectModeFPS)
+  {
+    // Release the existing session
+    if (_session != nullptr)
+    {
+      HFReleaseInspireFaceSession(_session);
+      _session = nullptr;
+    }
+
+    // Convert parameters
+    HFSessionCustomParameter hfParam;
+    hfParam.enable_recognition = parameter.enableRecognition.value_or(false) ? 1 : 0;
+    hfParam.enable_liveness = parameter.enableLiveness.value_or(false) ? 1 : 0;
+    hfParam.enable_ir_liveness = parameter.enableIrLiveness.value_or(false) ? 1 : 0;
+    hfParam.enable_mask_detect = parameter.enableMaskDetect.value_or(false) ? 1 : 0;
+    hfParam.enable_face_quality = parameter.enableFaceQuality.value_or(false) ? 1 : 0;
+    hfParam.enable_face_attribute = parameter.enableFaceAttribute.value_or(false) ? 1 : 0;
+    hfParam.enable_interaction_liveness = parameter.enableInteractionLiveness.value_or(false) ? 1 : 0;
+    hfParam.enable_detect_mode_landmark = parameter.enableDetectModeLandmark.value_or(false) ? 1 : 0;
+    hfParam.enable_face_pose = parameter.enableFacePose.value_or(false) ? 1 : 0;
+    hfParam.enable_face_emotion = parameter.enableFaceEmotion.value_or(false) ? 1 : 0;
+
+    // Create new session with updated config
+    HResult result = HFCreateInspireFaceSession(
+        hfParam,
+        static_cast<HFDetectMode>(detectMode),
+        static_cast<HInt32>(maxDetectFaceNum),
+        static_cast<HInt32>(detectPixelLevel),
+        static_cast<HInt32>(trackByDetectModeFPS),
+        &_session);
+
+    if (result != HSUCCEED || _session == nullptr)
+    {
+      throw std::runtime_error("Failed to reconfigure session with error code: " + std::to_string(result));
+    }
   }
 
 } // namespace margelo::nitro::nitroinspireface

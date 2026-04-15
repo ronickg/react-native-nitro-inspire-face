@@ -1,8 +1,10 @@
 import type { HybridObject } from 'react-native-nitro-modules';
 import type { ImageStream } from './ImageStream.nitro';
 import type { ImageBitmap } from './ImageBitmap.nitro';
+import type { DetectMode } from './enums';
 import type {
   FaceData,
+  FaceEmotionResult,
   FaceInteractionState,
   SessionCustomParameter,
   FaceAttributeResult,
@@ -49,6 +51,23 @@ export interface Session extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
    * @param num Interval value
    */
   setTrackModeDetectInterval(num: number): void;
+
+  /**
+   * Set the track lost recovery mode (only for LightTrack mode).
+   * @param enable Whether to enable track lost recovery (default: false)
+   */
+  setTrackLostRecoveryMode(enable: boolean): void;
+
+  /**
+   * Set the light track confidence threshold (only for LightTrack mode).
+   * @param value Confidence threshold value (default: 0.1)
+   */
+  setLightTrackConfidenceThreshold(value: number): void;
+
+  /**
+   * Clear all currently tracked faces.
+   */
+  clearTrackingFace(): void;
 
   /**
    * Execute face tracking on an image stream.
@@ -117,4 +136,27 @@ export interface Session extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
    * Get face attribute analysis results.
    */
   getFaceAttributeResult(): FaceAttributeResult[];
+
+  /**
+   * Get face emotion recognition results.
+   */
+  getFaceEmotionResult(): FaceEmotionResult[];
+
+  /**
+   * Reconfigure the session with new parameters.
+   * Internally destroys and recreates the underlying session handle.
+   * The JS object reference remains stable.
+   * @param parameter Custom parameters for the session
+   * @param detectMode Face detection mode
+   * @param maxDetectFaceNum Maximum number of faces to detect
+   * @param detectPixelLevel Detection resolution level (-1 for default 320)
+   * @param trackByDetectModeFPS Frame rate for tracking mode (-1 for default 30)
+   */
+  reconfigure(
+    parameter: SessionCustomParameter,
+    detectMode: DetectMode,
+    maxDetectFaceNum: number,
+    detectPixelLevel: number,
+    trackByDetectModeFPS: number
+  ): void;
 }

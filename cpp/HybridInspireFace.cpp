@@ -149,14 +149,16 @@ namespace margelo::nitro::nitroinspireface
       double trackByDetectModeFPS)
   {
     HFSessionCustomParameter hfParam;
-    hfParam.enable_recognition = parameter.enableRecognition ? 1 : 0;
-    hfParam.enable_liveness = parameter.enableLiveness ? 1 : 0;
-    hfParam.enable_ir_liveness = parameter.enableIrLiveness ? 1 : 0;
-    hfParam.enable_mask_detect = parameter.enableMaskDetect ? 1 : 0;
-    hfParam.enable_face_quality = parameter.enableFaceQuality ? 1 : 0;
-    hfParam.enable_face_attribute = parameter.enableFaceAttribute ? 1 : 0;
-    hfParam.enable_interaction_liveness = parameter.enableInteractionLiveness ? 1 : 0;
-    hfParam.enable_detect_mode_landmark = parameter.enableDetectModeLandmark ? 1 : 0;
+    hfParam.enable_recognition = parameter.enableRecognition.value_or(false) ? 1 : 0;
+    hfParam.enable_liveness = parameter.enableLiveness.value_or(false) ? 1 : 0;
+    hfParam.enable_ir_liveness = parameter.enableIrLiveness.value_or(false) ? 1 : 0;
+    hfParam.enable_mask_detect = parameter.enableMaskDetect.value_or(false) ? 1 : 0;
+    hfParam.enable_face_quality = parameter.enableFaceQuality.value_or(false) ? 1 : 0;
+    hfParam.enable_face_attribute = parameter.enableFaceAttribute.value_or(false) ? 1 : 0;
+    hfParam.enable_interaction_liveness = parameter.enableInteractionLiveness.value_or(false) ? 1 : 0;
+    hfParam.enable_detect_mode_landmark = parameter.enableDetectModeLandmark.value_or(false) ? 1 : 0;
+    hfParam.enable_face_pose = parameter.enableFacePose.value_or(false) ? 1 : 0;
+    hfParam.enable_face_emotion = parameter.enableFaceEmotion.value_or(false) ? 1 : 0;
 
     HFSession session = nullptr;
     HResult result = HFCreateInspireFaceSession(

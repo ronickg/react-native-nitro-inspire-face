@@ -23,6 +23,10 @@ export type SessionCustomParameter = {
   enableInteractionLiveness?: boolean;
   /** Enable landmark detection in detection mode */
   enableDetectModeLandmark?: boolean;
+  /** Enable face pose estimation feature */
+  enableFacePose?: boolean;
+  /** Enable face emotion recognition feature */
+  enableFaceEmotion?: boolean;
 };
 
 /**
@@ -82,6 +86,8 @@ export type FaceData = {
   rect: FaceRect;
   /** Unique identifier for tracking the face across frames */
   trackId: number;
+  /** Number of frames this face has been tracked */
+  trackCount: number;
   /** Confidence score of the face detection */
   detConfidence: number;
   /** 3D orientation of the face */
@@ -188,6 +194,15 @@ export type FaceAttributeResult = {
   gender: number;
   /** Race prediction (0: Black, 1: Asian, 2: Latino/Hispanic, 3: Middle Eastern, 4: White) */
   race: number;
+};
+
+/**
+ * Results of face emotion recognition.
+ * Contains the predicted emotion for each detected face.
+ */
+export type FaceEmotionResult = {
+  /** Predicted emotion (0: Neutral, 1: Happy, 2: Sad, 3: Surprise, 4: Fear, 5: Disgust, 6: Anger) */
+  emotion: number;
 };
 
 /**
