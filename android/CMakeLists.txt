@@ -28,3 +28,6 @@ target_link_libraries(
         android # <-- Android core
         inspireface # <-- InspireFace
 )
+
+# 16KB page size support (Android 15+)
+target_link_options(${PACKAGE_NAME} PRIVATE "-Wl,-z,max-page-size=16384" "-Wl,-z,common-page-size=16384")
