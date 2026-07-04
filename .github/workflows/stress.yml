@@ -1,0 +1,58 @@
+name: Native Stress Tests
+
+on:
+  pull_request:
+    paths:
+      - 'cpp/**'
+      - 'ios/**'
+      - 'stress/**'
+      - '.github/workflows/stress.yml'
+  schedule:
+    - cron: '0 6 * * *' # nightly, wider cycle count
+  workflow_dispatch:
+
+jobs:
+  stress-ios:
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      # Nightly runs a much wider race window than the per-PR gate.
+      STRESS_CYCLES: ${{ github.event_name == 'schedule' && '500' || '50' }}
+      STRESS_HUB_SECONDS: ${{ github.event_name == 'schedule' && '60' || '15' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        # ios/*.xcframework and example/ios/{Megatron,kun.jpg} are committed —
+        # nothing to download. If they ever move to git-lfs, add: with: lfs: true
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.app
+
+      - name: Build stress harness (arm64 simulator)
+        run: bash stress/build.sh
+
+      - name: Boot an iOS simulator
+        run: |
+          UDID=$(xcrun simctl create stress-sim \
+            "iPhone 16" \
+            "$(xcrun simctl list runtimes | awk '/iOS/{print $NF}' | tail -1)")
+          xcrun simctl boot "$UDID"
+          echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl bootstatus "$UDID" -b
+
+      - name: Run guarded stress regression (fixed + hubfixed must exit 0)
+        run: bash stress/ci_check.sh
+
+      # Nightly only: does the UNGUARDED race still reproduce against the SDK?
+      # Non-gating — a no-crash run is a valid outcome, so never fail on it.
+      - name: Diagnostic repro (informational)
+        if: github.event_name == 'schedule'
+        run: bash stress/run_all.sh || true
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stress-logs
+          path: /tmp/stress_*.log
+          if-no-files-found: ignore

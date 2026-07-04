@@ -12,6 +12,7 @@
 #include "FaceData.hpp"
 #include "inspireface.h"
 #include <NitroModules/ArrayBuffer.hpp>
+#include <mutex>
 #include <vector>
 
 namespace margelo::nitro::nitroinspireface
@@ -65,8 +66,22 @@ namespace margelo::nitro::nitroinspireface
     std::shared_ptr<ArrayBuffer> extractFaceFeatureFromAlignmentImage(const std::shared_ptr<HybridImageStreamSpec> &imageStream) override;
     void reconfigure(const SessionCustomParameter &parameter, DetectMode detectMode, double maxDetectFaceNum, double detectPixelLevel, double trackByDetectModeFPS) override;
 
+    // Memory pressure hint for the JS GC: a session pins an MNN interpreter +
+    // model tensors natively while the JS wrapper is only a few bytes.
+    size_t getExternalMemorySize() noexcept override;
+
   private:
     HFSession _session;
+    // Guards _session against use-during-free: JS callers may invoke methods
+    // from multiple runtimes/threads (e.g. a VisionCamera frame-processor
+    // worklet) while dispose()/reconfigure() runs on another thread. Methods
+    // take this lock for the full duration of their native call; dispose()/
+    // reconfigure() take it too, so releasing the native session waits for any
+    // in-flight call instead of freeing the MNN interpreter under it
+    // (EXC_BAD_ACCESS). Exclusive (not shared): executeFaceTrack /
+    // multipleFacePipelineProcess / extractFaceFeature all WRITE session-internal
+    // buffers, so two concurrent calls on one session would corrupt them.
+    mutable std::mutex _sessionMutex;
   };
 
 } // namespace margelo::nitro::nitroinspireface

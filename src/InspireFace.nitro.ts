@@ -23,10 +23,11 @@ import type {
  * Main interface for the InspireFace SDK functionality.
  * Provides comprehensive face detection, recognition, and analysis capabilities.
  */
-export interface InspireFace extends HybridObject<{
-  ios: 'c++';
-  android: 'c++';
-}> {
+export interface InspireFace
+  extends HybridObject<{
+    ios: 'c++';
+    android: 'c++';
+  }> {
   /** Version string of the SDK */
   readonly version: string;
   /** Length of face feature vectors */

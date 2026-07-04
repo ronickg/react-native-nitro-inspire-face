@@ -12,6 +12,7 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridImageBitmap::cleanup()
   {
+    std::lock_guard<std::mutex> lock(_mutex);
     if (_bitmap != nullptr)
     {
       HFReleaseImageBitmap(_bitmap);
@@ -31,6 +32,7 @@ namespace margelo::nitro::nitroinspireface
 
   double HybridImageBitmap::getWidth()
   {
+    std::lock_guard<std::mutex> lock(_mutex);
     if (_bitmap == nullptr)
     {
       throw std::runtime_error("HybridImageBitmap is not initialized");
@@ -48,6 +50,7 @@ namespace margelo::nitro::nitroinspireface
 
   double HybridImageBitmap::getHeight()
   {
+    std::lock_guard<std::mutex> lock(_mutex);
     if (_bitmap == nullptr)
     {
       throw std::runtime_error("HybridImageBitmap is not initialized");
@@ -65,6 +68,7 @@ namespace margelo::nitro::nitroinspireface
 
   double HybridImageBitmap::getChannels()
   {
+    std::lock_guard<std::mutex> lock(_mutex);
     if (_bitmap == nullptr)
     {
       throw std::runtime_error("HybridImageBitmap is not initialized");
@@ -82,6 +86,7 @@ namespace margelo::nitro::nitroinspireface
 
   std::shared_ptr<ArrayBuffer> HybridImageBitmap::getData()
   {
+    std::lock_guard<std::mutex> lock(_mutex);
     if (_bitmap == nullptr)
     {
       throw std::runtime_error("HybridImageBitmap is not initialized");
@@ -97,23 +102,27 @@ namespace margelo::nitro::nitroinspireface
     // Calculate total size of the image data
     size_t dataSize = static_cast<size_t>(bitmapData.width) * static_cast<size_t>(bitmapData.height) * static_cast<size_t>(bitmapData.channels);
 
-    // Zero-copy: wrap the bitmap's internal buffer directly.
-    // Prevent the bitmap from being released while JS holds this ArrayBuffer
-    // by preventing dispose() from running until JS releases its reference.
-    // We capture a raw pointer to our bitmap handle — the HybridImageBitmap
-    // itself stays alive because it's the HybridObject that JS references.
+    // Zero-copy: wrap the bitmap's internal buffer directly. The deleter
+    // captures a strong reference to this HybridImageBitmap so the buffer
+    // genuinely pins the bitmap against GC for as long as JS (on any runtime)
+    // holds the ArrayBuffer. Note this cannot protect against an explicit
+    // dispose() while the buffer is still referenced — copy the data out
+    // before disposing the bitmap.
+    auto self = shared_from_this();
     return std::make_shared<NativeArrayBuffer>(
         bitmapData.data,
         dataSize,
-        []()
+        [self]()
         {
-          // No-op destructor: the bitmap owns this memory.
-          // The HybridImageBitmap prevents deallocation while alive.
+          // The captured shared_ptr keeps the bitmap (and its buffer) alive
+          // until the ArrayBuffer is destroyed; releasing it here lets the
+          // bitmap free naturally.
         });
   }
 
   void HybridImageBitmap::drawRect(const FaceRect &rect, const Color &color, double thickness)
   {
+    std::lock_guard<std::mutex> lock(_mutex);
     if (_bitmap == nullptr)
     {
       throw std::runtime_error("HybridImageBitmap is not initialized");
@@ -139,6 +148,7 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridImageBitmap::drawCircleF(const Point2f &point, double radius, const Color &color, double thickness)
   {
+    std::lock_guard<std::mutex> lock(_mutex);
     if (_bitmap == nullptr)
     {
       throw std::runtime_error("HybridImageBitmap is not initialized");
@@ -162,6 +172,7 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridImageBitmap::drawCircle(const Point2i &point, double radius, const Color &color, double thickness)
   {
+    std::lock_guard<std::mutex> lock(_mutex);
     if (_bitmap == nullptr)
     {
       throw std::runtime_error("HybridImageBitmap is not initialized");
@@ -184,6 +195,7 @@ namespace margelo::nitro::nitroinspireface
   }
   void HybridImageBitmap::writeToFile(const std::string &filePath)
   {
+    std::lock_guard<std::mutex> lock(_mutex);
     if (_bitmap == nullptr)
     {
       throw std::runtime_error("HybridImageBitmap is not initialized");
@@ -198,6 +210,7 @@ namespace margelo::nitro::nitroinspireface
 
   std::shared_ptr<HybridImageBitmapSpec> HybridImageBitmap::copy()
   {
+    std::lock_guard<std::mutex> lock(_mutex);
     if (_bitmap == nullptr)
     {
       throw std::runtime_error("HybridImageBitmap is not initialized");
@@ -211,6 +224,24 @@ namespace margelo::nitro::nitroinspireface
     }
 
     return std::make_shared<HybridImageBitmap>(copyHandle);
+  }
+
+  size_t HybridImageBitmap::getExternalMemorySize() noexcept
+  {
+    // Report the pixel buffer size so the JS GC feels the real weight of a
+    // leaked bitmap instead of a few-byte wrapper. Non-blocking: runs on the JS
+    // thread during object materialization, so never stall behind a native call.
+    std::unique_lock<std::mutex> lock(_mutex, std::try_to_lock);
+    if (!lock.owns_lock() || _bitmap == nullptr)
+    {
+      return 0;
+    }
+    HFImageBitmapData bitmapData{};
+    if (HFImageBitmapGetData(_bitmap, &bitmapData) != HSUCCEED)
+    {
+      return 0;
+    }
+    return static_cast<size_t>(bitmapData.width) * static_cast<size_t>(bitmapData.height) * static_cast<size_t>(bitmapData.channels);
   }
 
 } // namespace margelo::nitro::nitroinspireface

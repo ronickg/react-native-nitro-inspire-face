@@ -23,6 +23,9 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridSession::cleanup()
   {
+    // Exclusive lock: wait for any in-flight session call (shared holders)
+    // before freeing the native session.
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session != nullptr)
     {
       HFReleaseInspireFaceSession(_session);
@@ -42,6 +45,7 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridSession::setTrackPreviewSize(double size)
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       throw std::runtime_error("HybridSession is not initialized");
@@ -56,6 +60,7 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridSession::setFaceDetectThreshold(double threshold)
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       throw std::runtime_error("HybridSession is not initialized");
@@ -70,6 +75,7 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridSession::setFilterMinimumFacePixelSize(double size)
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       throw std::runtime_error("HybridSession is not initialized");
@@ -84,6 +90,7 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridSession::setTrackModeSmoothRatio(double ratio)
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       throw std::runtime_error("HybridSession is not initialized");
@@ -98,6 +105,7 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridSession::setTrackModeNumSmoothCacheFrame(double num)
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       throw std::runtime_error("HybridSession is not initialized");
@@ -112,6 +120,7 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridSession::setTrackModeDetectInterval(double num)
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       throw std::runtime_error("HybridSession is not initialized");
@@ -126,6 +135,7 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridSession::setTrackLostRecoveryMode(bool enable)
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       throw std::runtime_error("HybridSession is not initialized");
@@ -140,6 +150,7 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridSession::setLightTrackConfidenceThreshold(double value)
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       throw std::runtime_error("HybridSession is not initialized");
@@ -154,6 +165,7 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridSession::clearTrackingFace()
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       throw std::runtime_error("HybridSession is not initialized");
@@ -168,6 +180,7 @@ namespace margelo::nitro::nitroinspireface
 
   std::vector<FaceData> HybridSession::executeFaceTrack(const std::shared_ptr<HybridImageStreamSpec> &imageStream)
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (!_session)
     {
       throw std::runtime_error("HybridSession is null");
@@ -183,10 +196,11 @@ namespace margelo::nitro::nitroinspireface
       throw std::runtime_error("Invalid image stream type");
     }
 
-    HFImageStream nativeStream = nitroImageStream->getNativeHandle();
-
     HFMultipleFaceData results{};
-    HResult status = HFExecuteFaceTrack(_session, nativeStream, &results);
+    // withNativeHandle holds the stream's lock across the call, so a concurrent
+    // stream.dispose() can't free the stream handle mid-track.
+    HResult status = nitroImageStream->withNativeHandle([&](HFImageStream nativeStream)
+                                                        { return HFExecuteFaceTrack(_session, nativeStream, &results); });
     if (status != HSUCCEED)
     {
       throw std::runtime_error("Face track failed with code: " + std::to_string(status));
@@ -250,6 +264,12 @@ namespace margelo::nitro::nitroinspireface
 
   std::shared_ptr<ArrayBuffer> HybridSession::extractFaceFeature(const std::shared_ptr<HybridImageStreamSpec> &imageStream, const std::shared_ptr<ArrayBuffer> &faceToken)
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
+    if (_session == nullptr)
+    {
+      throw std::runtime_error("HybridSession is not initialized");
+    }
+
     if (!imageStream || !faceToken)
     {
       throw std::runtime_error("Invalid input parameters");
@@ -271,7 +291,8 @@ namespace margelo::nitro::nitroinspireface
     HFFaceFeature feature = {};
 
     // Extract face feature
-    HResult result = HFFaceFeatureExtract(_session, nitroImageStream->getNativeHandle(), token, &feature);
+    HResult result = nitroImageStream->withNativeHandle([&](HFImageStream h)
+                                                       { return HFFaceFeatureExtract(_session, h, token, &feature); });
 
     if (result != HSUCCEED)
     {
@@ -308,6 +329,7 @@ namespace margelo::nitro::nitroinspireface
 
   bool HybridSession::multipleFacePipelineProcess(const std::shared_ptr<HybridImageStreamSpec> &imageStream, const std::vector<FaceData> &multipleFaceData, const SessionCustomParameter &parameter)
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       Logger::log(LogLevel::Error, "HybridSession", "HybridSession is not initialized");
@@ -390,7 +412,8 @@ namespace margelo::nitro::nitroinspireface
     }
 
     // Process the faces
-    HResult result = HFMultipleFacePipelineProcess(_session, nitroImageStream->getNativeHandle(), &hfFaces, hfParam);
+    HResult result = nitroImageStream->withNativeHandle([&](HFImageStream h)
+                                                       { return HFMultipleFacePipelineProcess(_session, h, &hfFaces, hfParam); });
 
     if (result != HSUCCEED)
     {
@@ -403,6 +426,7 @@ namespace margelo::nitro::nitroinspireface
 
   std::vector<double> HybridSession::getRGBLivenessConfidence()
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       Logger::log(LogLevel::Error, "HybridSession", "HybridSession is not initialized");
@@ -434,6 +458,7 @@ namespace margelo::nitro::nitroinspireface
 
   std::vector<double> HybridSession::getFaceQualityConfidence()
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       Logger::log(LogLevel::Error, "HybridSession", "HybridSession is not initialized");
@@ -465,6 +490,7 @@ namespace margelo::nitro::nitroinspireface
 
   std::vector<double> HybridSession::getFaceMaskConfidence()
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       Logger::log(LogLevel::Error, "HybridSession", "HybridSession is not initialized");
@@ -496,6 +522,7 @@ namespace margelo::nitro::nitroinspireface
 
   std::vector<FaceInteractionState> HybridSession::getFaceInteractionState()
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       Logger::log(LogLevel::Error, "HybridSession", "HybridSession is not initialized");
@@ -529,6 +556,7 @@ namespace margelo::nitro::nitroinspireface
 
   std::vector<FaceInteractionsAction> HybridSession::getFaceInteractionActionsResult()
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       Logger::log(LogLevel::Error, "HybridSession", "HybridSession is not initialized");
@@ -566,6 +594,7 @@ namespace margelo::nitro::nitroinspireface
 
   std::vector<FaceAttributeResult> HybridSession::getFaceAttributeResult()
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       Logger::log(LogLevel::Error, "HybridSession", "HybridSession is not initialized");
@@ -600,6 +629,7 @@ namespace margelo::nitro::nitroinspireface
 
   std::vector<FaceEmotionResult> HybridSession::getFaceEmotionResult()
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       Logger::log(LogLevel::Error, "HybridSession", "HybridSession is not initialized");
@@ -630,6 +660,7 @@ namespace margelo::nitro::nitroinspireface
 
   std::shared_ptr<HybridImageBitmapSpec> HybridSession::getFaceAlignmentImage(const std::shared_ptr<HybridImageStreamSpec> &imageStream, const std::shared_ptr<ArrayBuffer> &faceToken)
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       Logger::log(LogLevel::Error, "HybridSession", "HybridSession is not initialized");
@@ -654,7 +685,8 @@ namespace margelo::nitro::nitroinspireface
 
     // Get aligned image
     HFImageBitmap alignedBitmap = nullptr;
-    HResult result = HFFaceGetFaceAlignmentImage(_session, nitroImageStream->getNativeHandle(), token, &alignedBitmap);
+    HResult result = nitroImageStream->withNativeHandle([&](HFImageStream h)
+                                                       { return HFFaceGetFaceAlignmentImage(_session, h, token, &alignedBitmap); });
 
     if (result != HSUCCEED || alignedBitmap == nullptr)
     {
@@ -666,6 +698,7 @@ namespace margelo::nitro::nitroinspireface
 
   double HybridSession::getTrackPreviewSize()
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       throw std::runtime_error("HybridSession is not initialized");
@@ -682,6 +715,7 @@ namespace margelo::nitro::nitroinspireface
 
   double HybridSession::faceQualityDetect(const std::shared_ptr<ArrayBuffer> &faceToken)
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       throw std::runtime_error("HybridSession is not initialized");
@@ -707,6 +741,7 @@ namespace margelo::nitro::nitroinspireface
 
   std::shared_ptr<ArrayBuffer> HybridSession::extractFaceFeatureFromAlignmentImage(const std::shared_ptr<HybridImageStreamSpec> &imageStream)
   {
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     if (_session == nullptr)
     {
       throw std::runtime_error("HybridSession is not initialized");
@@ -736,7 +771,8 @@ namespace margelo::nitro::nitroinspireface
     std::vector<float> featureData(expectedLength);
     feature.data = featureData.data();
 
-    HResult result = HFFaceFeatureExtractWithAlignmentImage(_session, nitroImageStream->getNativeHandle(), feature);
+    HResult result = nitroImageStream->withNativeHandle([&](HFImageStream h)
+                                                       { return HFFaceFeatureExtractWithAlignmentImage(_session, h, feature); });
     if (result != HSUCCEED)
     {
       throw std::runtime_error("Failed to extract face feature from alignment image with error code: " + std::to_string(result));
@@ -749,6 +785,8 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridSession::reconfigure(const SessionCustomParameter &parameter, DetectMode detectMode, double maxDetectFaceNum, double detectPixelLevel, double trackByDetectModeFPS)
   {
+    // Exclusive lock: reconfigure frees and replaces the handle.
+    std::lock_guard<std::mutex> lock(_sessionMutex);
     // Release the existing session
     if (_session != nullptr)
     {
@@ -782,6 +820,16 @@ namespace margelo::nitro::nitroinspireface
     {
       throw std::runtime_error("Failed to reconfigure session with error code: " + std::to_string(result));
     }
+  }
+
+  size_t HybridSession::getExternalMemorySize() noexcept
+  {
+    // Rough estimate of the native memory pinned by a live session (MNN
+    // interpreter + model tensors + tracking state). The exact size depends on
+    // the model pack and enabled features; what matters is that Hermes sees a
+    // multi-megabyte object instead of a few-byte wrapper, so unreferenced
+    // sessions actually pressure the GC.
+    return _session != nullptr ? 32 * 1024 * 1024 : 0;
   }
 
 } // namespace margelo::nitro::nitroinspireface
