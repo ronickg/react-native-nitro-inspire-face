@@ -8,9 +8,16 @@
 #include <memory>
 #include <vector>
 #include <optional>
+#include <mutex>
 
 namespace margelo::nitro::nitroinspireface
 {
+  // The InspireFace FeatureHub is a process-global singleton with no
+  // documented thread-safety, and callers hit it from multiple threads (the
+  // JS thread inserts/removes during gallery reconciles while worklet
+  // runtimes search per-frame). Serialize every hub call behind one mutex.
+  static std::mutex gFeatureHubMutex;
+
   HybridInspireFace::HybridInspireFace() : HybridObject(TAG)
   {
     auto utilsObject = HybridObjectRegistry::createHybridObject("AssetManager");
@@ -30,10 +37,13 @@ namespace margelo::nitro::nitroinspireface
 
   std::string HybridInspireFace::getVersion()
   {
-    HFInspireFaceVersion version;
-    HFQueryInspireFaceVersion(&version);
+    HFInspireFaceVersion version = {};
+    HResult result = HFQueryInspireFaceVersion(&version);
+    if (result != HSUCCEED)
+    {
+      throw std::runtime_error("Failed to query InspireFace version with error code: " + std::to_string(result));
+    }
     return std::to_string(version.major) + "." + std::to_string(version.minor) + "." + std::to_string(version.patch);
-    // return "1.0.0";
   }
 
   void HybridInspireFace::launch(const std::string &path)
@@ -86,6 +96,9 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridInspireFace::reload(const std::string &path)
   {
+    // Serialize against feature-hub calls — reload rebuilds global SDK state the
+    // hub depends on. Callers must still dispose all sessions before reloading.
+    std::lock_guard<std::mutex> hubLock(gFeatureHubMutex);
     HResult result = HFReloadInspireFace(path.c_str());
     if (result != HSUCCEED)
     {
@@ -96,6 +109,11 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridInspireFace::terminate()
   {
+    // HFTerminateInspireFace tears down the global FeatureHub and model state.
+    // Take the hub lock so it can't overlap an in-flight hub call. NOTE: this
+    // cannot protect live sessions — JS MUST dispose every session before
+    // terminate(), otherwise a concurrent executeFaceTrack hits freed state.
+    std::lock_guard<std::mutex> hubLock(gFeatureHubMutex);
     HResult result = HFTerminateInspireFace();
     if (result != HSUCCEED)
     {
@@ -106,23 +124,22 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridInspireFace::featureHubDataEnable(const FeatureHubConfiguration &config)
   {
+    std::lock_guard<std::mutex> hubLock(gFeatureHubMutex);
     const std::string databasesDirectory = assetManager->getDatabasesDirectory();
     const std::string destPath = databasesDirectory + "/" + config.persistenceDbPath;
 
     HFFeatureHubConfiguration hfConfig;
     hfConfig.searchMode = static_cast<HFSearchMode>(config.searchMode);
     hfConfig.enablePersistence = config.enablePersistence ? 1 : 0;
-    // Create a non-const buffer for the path
-    char *pathBuffer = new char[destPath.length() + 1];
-    std::strcpy(pathBuffer, destPath.c_str());
-    hfConfig.persistenceDbPath = pathBuffer;
+    // Mutable, self-owning path buffer (HFFeatureHubDataEnable takes a char*).
+    // std::string owns the storage and frees it on scope exit, leak-safe even
+    // if a throw is later added between here and the native call.
+    std::string pathBuffer = destPath;
+    hfConfig.persistenceDbPath = pathBuffer.data();
     hfConfig.searchThreshold = static_cast<float>(config.searchThreshold);
     hfConfig.primaryKeyMode = static_cast<HFPKMode>(config.primaryKeyMode);
 
     HResult result = HFFeatureHubDataEnable(hfConfig);
-
-    // Clean up the path buffer
-    delete[] pathBuffer;
 
     if (result != HSUCCEED)
     {
@@ -133,6 +150,7 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridInspireFace::featureHubFaceSearchThresholdSetting(double threshold)
   {
+    std::lock_guard<std::mutex> hubLock(gFeatureHubMutex);
     HResult result = HFFeatureHubFaceSearchThresholdSetting(static_cast<float>(threshold));
     if (result != HSUCCEED)
     {
@@ -222,19 +240,21 @@ namespace margelo::nitro::nitroinspireface
       throw std::runtime_error("Failed to cast to HybridImageBitmap");
     }
 
-    // Create stream from bitmap
+    // Create stream from bitmap (handle held under the bitmap's lock for the call).
     HFImageStream stream = nullptr;
-    HResult result = HFCreateImageStreamFromImageBitmap(
-        nitroBitmap->getNativeHandle(),
-        static_cast<HFRotation>(rotation),
-        &stream);
+    HResult result = nitroBitmap->withNativeHandle([&](HFImageBitmap h)
+                                                   { return HFCreateImageStreamFromImageBitmap(h, static_cast<HFRotation>(rotation), &stream); });
 
     if (result != HSUCCEED || stream == nullptr)
     {
       throw std::runtime_error("Failed to create image stream from bitmap with error code: " + std::to_string(result));
     }
 
-    return std::make_shared<HybridImageStream>(stream);
+    // The stream references the bitmap's pixels; keep the bitmap alive for the
+    // stream's lifetime. Report 0 bytes: the bitmap already reports its own.
+    auto hybridStream = std::make_shared<HybridImageStream>(stream);
+    hybridStream->setBacking(nitroBitmap, 0);
+    return hybridStream;
   }
 
   std::vector<Point2f> HybridInspireFace::getFaceDenseLandmarkFromFaceToken(const std::shared_ptr<ArrayBuffer> &token, std::optional<double> num)
@@ -329,6 +349,7 @@ namespace margelo::nitro::nitroinspireface
 
   double HybridInspireFace::featureHubFaceInsert(const FaceFeatureIdentity &feature)
   {
+    std::lock_guard<std::mutex> hubLock(gFeatureHubMutex);
     if (!feature.feature || feature.feature->size() == 0)
     {
       throw std::runtime_error("Invalid feature data");
@@ -370,6 +391,7 @@ namespace margelo::nitro::nitroinspireface
 
   bool HybridInspireFace::featureHubFaceUpdate(const FaceFeatureIdentity &feature)
   {
+    std::lock_guard<std::mutex> hubLock(gFeatureHubMutex);
     if (!feature.feature || feature.feature->size() == 0)
     {
       throw std::runtime_error("Invalid feature data");
@@ -406,12 +428,14 @@ namespace margelo::nitro::nitroinspireface
 
   bool HybridInspireFace::featureHubFaceRemove(double id)
   {
+    std::lock_guard<std::mutex> hubLock(gFeatureHubMutex);
     HResult result = HFFeatureHubFaceRemove(static_cast<HFaceId>(id));
     return result == HSUCCEED;
   }
 
   std::variant<nitro::NullType, FaceFeatureIdentity> HybridInspireFace::featureHubFaceSearch(const std::shared_ptr<ArrayBuffer> &feature)
   {
+    std::lock_guard<std::mutex> hubLock(gFeatureHubMutex);
     if (!feature || feature->size() == 0)
     {
       throw std::runtime_error("Invalid feature data");
@@ -459,6 +483,7 @@ namespace margelo::nitro::nitroinspireface
 
   std::variant<nitro::NullType, FaceFeatureIdentity> HybridInspireFace::featureHubGetFaceIdentity(double id)
   {
+    std::lock_guard<std::mutex> hubLock(gFeatureHubMutex);
     HFFaceFeatureIdentity identity = {};
     HResult result = HFFeatureHubGetFaceIdentity(static_cast<HFaceId>(id), &identity);
     if (result != HSUCCEED || !identity.feature)
@@ -496,6 +521,7 @@ namespace margelo::nitro::nitroinspireface
 
   std::vector<SearchTopKResult> HybridInspireFace::featureHubFaceSearchTopK(const std::shared_ptr<ArrayBuffer> &feature, double topK)
   {
+    std::lock_guard<std::mutex> hubLock(gFeatureHubMutex);
     if (!feature || feature->size() == 0)
     {
       throw std::runtime_error("Invalid feature data");
@@ -635,6 +661,7 @@ namespace margelo::nitro::nitroinspireface
 
   double HybridInspireFace::featureHubGetFaceCount()
   {
+    std::lock_guard<std::mutex> hubLock(gFeatureHubMutex);
     HInt32 count = 0;
     HResult result = HFFeatureHubGetFaceCount(&count);
     if (result != HSUCCEED)
@@ -646,6 +673,7 @@ namespace margelo::nitro::nitroinspireface
 
   std::vector<double> HybridInspireFace::featureHubGetExistingIds()
   {
+    std::lock_guard<std::mutex> hubLock(gFeatureHubMutex);
     HFFeatureHubExistingIds ids = {};
     HResult result = HFFeatureHubGetExistingIds(&ids);
     if (result != HSUCCEED)
@@ -668,6 +696,7 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridInspireFace::featureHubDataDisable()
   {
+    std::lock_guard<std::mutex> hubLock(gFeatureHubMutex);
     HResult result = HFFeatureHubDataDisable();
     if (result != HSUCCEED)
     {
@@ -949,7 +978,10 @@ namespace margelo::nitro::nitroinspireface
       throw std::runtime_error("Failed to create image stream with error code: " + std::to_string(result));
     }
 
-    return std::make_shared<HybridImageStream>(stream);
+    // The stream references the JS buffer directly; keep it alive for the stream.
+    auto hybridStream = std::make_shared<HybridImageStream>(stream);
+    hybridStream->setBacking(buffer, buffer->size());
+    return hybridStream;
   }
 
   std::shared_ptr<HybridImageStreamSpec> HybridInspireFace::createEmptyImageStream()

@@ -9,6 +9,8 @@
 #include <NitroModules/ArrayBuffer.hpp>
 #include <NitroModules/NitroLogger.hpp>
 #include <memory>
+#include <mutex>
+#include <stdexcept>
 #include <string>
 
 namespace margelo::nitro::nitroinspireface
@@ -49,10 +51,26 @@ namespace margelo::nitro::nitroinspireface
     void writeToFile(const std::string &filePath) override;
     std::shared_ptr<HybridImageBitmapSpec> copy() override;
 
-    // Get the native bitmap handle
-    HFImageBitmap getNativeHandle() const { return _bitmap; }
+    // Memory pressure hint for the JS GC (pixel buffer size).
+    size_t getExternalMemorySize() noexcept override;
+
+    // Run `fn` with the native bitmap handle held under the bitmap's lock, so a
+    // concurrent dispose() can't free the handle mid-call. Throws if disposed.
+    // Consumers passing the bitmap to a native call (createImageStreamFromBitmap)
+    // MUST use this instead of a bare getNativeHandle().
+    template <typename Fn>
+    auto withNativeHandle(Fn &&fn)
+    {
+      std::lock_guard<std::mutex> lock(_mutex);
+      if (_bitmap == nullptr)
+      {
+        throw std::runtime_error("HybridImageBitmap is not initialized");
+      }
+      return fn(_bitmap);
+    }
 
   private:
     HFImageBitmap _bitmap;
+    mutable std::mutex _mutex;
   };
 } // namespace margelo::nitro::nitroinspireface

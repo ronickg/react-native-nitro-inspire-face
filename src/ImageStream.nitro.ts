@@ -6,10 +6,11 @@ import type { ImageBitmap } from './ImageBitmap.nitro';
  * Interface for handling image stream operations.
  * Provides functionality for image stream manipulation and conversion.
  */
-export interface ImageStream extends HybridObject<{
-  ios: 'c++';
-  android: 'c++';
-}> {
+export interface ImageStream
+  extends HybridObject<{
+    ios: 'c++';
+    android: 'c++';
+  }> {
   /**
    * Write the image stream to a file.
    * @param filePath Path where the image will be saved

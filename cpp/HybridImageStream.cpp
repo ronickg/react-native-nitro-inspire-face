@@ -14,11 +14,16 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridImageStream::cleanup()
   {
+    // Exclusive over withNativeHandle/methods: wait for any in-flight native
+    // call using this stream (e.g. a session's executeFaceTrack) before freeing.
+    std::lock_guard<std::mutex> lock(_mutex);
     if (_stream != nullptr)
     {
       HFReleaseImageStream(_stream);
       _stream = nullptr;
     }
+    _backing = nullptr;
+    _backingBytes = 0;
   }
 
   HybridImageStream::~HybridImageStream()
@@ -31,8 +36,21 @@ namespace margelo::nitro::nitroinspireface
     cleanup();
   }
 
+  size_t HybridImageStream::getExternalMemorySize() noexcept
+  {
+    // Non-blocking: getExternalMemorySize runs on the JS thread during object
+    // materialization; never stall it behind a long native call holding _mutex.
+    std::unique_lock<std::mutex> lock(_mutex, std::try_to_lock);
+    if (!lock.owns_lock())
+    {
+      return 0;
+    }
+    return _stream != nullptr ? _backingBytes : 0;
+  }
+
   void HybridImageStream::writeImageToFile(const std::string &filePath)
   {
+    std::lock_guard<std::mutex> lock(_mutex);
     if (_stream == nullptr)
     {
       throw std::runtime_error("HybridImageStream is not initialized");
@@ -47,6 +65,7 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridImageStream::setBuffer(const std::shared_ptr<ArrayBuffer> &buffer, double width, double height)
   {
+    std::lock_guard<std::mutex> lock(_mutex);
     if (_stream == nullptr)
     {
       throw std::runtime_error("HybridImageStream is not initialized");
@@ -66,10 +85,16 @@ namespace margelo::nitro::nitroinspireface
     {
       throw std::runtime_error("Failed to set image stream buffer with error code: " + std::to_string(result));
     }
+
+    // Retain the JS buffer: the stream references it directly and only reads it
+    // later during executeFaceTrack, so it must outlive this call.
+    _backing = buffer;
+    _backingBytes = buffer->size();
   }
 
   void HybridImageStream::setFormat(ImageFormat format)
   {
+    std::lock_guard<std::mutex> lock(_mutex);
     if (_stream == nullptr)
     {
       throw std::runtime_error("HybridImageStream is not initialized");
@@ -115,6 +140,7 @@ namespace margelo::nitro::nitroinspireface
 
   void HybridImageStream::setRotation(CameraRotation rotation)
   {
+    std::lock_guard<std::mutex> lock(_mutex);
     if (_stream == nullptr)
     {
       throw std::runtime_error("HybridImageStream is not initialized");
@@ -148,6 +174,7 @@ namespace margelo::nitro::nitroinspireface
 
   std::shared_ptr<HybridImageBitmapSpec> HybridImageStream::createImageBitmap(std::optional<bool> isRotate, std::optional<double> scale)
   {
+    std::lock_guard<std::mutex> lock(_mutex);
     if (_stream == nullptr)
     {
       throw std::runtime_error("HybridImageStream is not initialized");
